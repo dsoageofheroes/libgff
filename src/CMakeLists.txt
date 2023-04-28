@@ -1,0 +1,19 @@
+set(LIBGFF_SRCS
+    image.c
+    item.c
+    char.c
+    gff.c
+    gfftypes.c
+    map.c
+    rdff.c
+    object.c
+    scmd.c
+    gui.c
+    xmi.c
+)
+
+include_directories(../include)
+include_directories(../ext)
+add_library(gff SHARED ${LIBGFF_SRCS})
+
+install(TARGETS gff DESTINATION .)
