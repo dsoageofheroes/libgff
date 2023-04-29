@@ -120,13 +120,13 @@ typedef struct gff_palettes_s {
     gff_palette_t palettes[];
 } gff_palettes_t;
 
-typedef struct gff_map_object_s {
+typedef struct gff_etab_object_s {
     uint16_t xpos;
     uint16_t ypos;
     int8_t   zpos;
     uint8_t  flags;
     int16_t  index; // bit 15: item is on disk(segobjx.gff), abs(index) = chunk id!
-} gff_map_object_t;
+} gff_etab_object_t;
 
 // This will need to be reworked.
 typedef struct gff_file_s {
@@ -136,7 +136,7 @@ typedef struct gff_file_s {
     unsigned int num_palettes;
     size_t start_palette_index;
     int num_objects;
-    gff_map_object_t *entry_table;
+    gff_etab_object_t *entry_table;
 
     // New work for loading only the headers.
     FILE *file;
@@ -146,6 +146,8 @@ typedef struct gff_file_s {
     gff_chunk_entry_t **chunks;
     gff_chunk_entry_t *gffi;
     gff_palettes_t *pals;
+
+    uint32_t id;
 } gff_file_t;
 
 #endif

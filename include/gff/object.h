@@ -40,8 +40,7 @@ typedef struct ds_character_s {
     uint8_t alignment;   // confirmed
     ds_stats_t stats;    // confirmed
     int8_t real_class[3]; // confirmed
-    uint8_t level[3];      // confirmed
-    int8_t base_ac;      //confirmed
+    uint8_t level[3];      // confirmed int8_t base_ac;      //confirmed
     uint8_t base_move;      //confirmed
     uint8_t magic_resistance;      //confirmed
     uint8_t num_blows;     //confirmed, blow type?
@@ -106,7 +105,6 @@ enum gff_object_type_e {
     GFF_FULL_ITEM_OBJECT = 8,
 };
 
-
 typedef struct gff_object_s {
     uint16_t type;
     union {
@@ -114,6 +112,12 @@ typedef struct gff_object_s {
         ds1_item_t   ds1_item;
     } data;
 } gff_object_t;
+
+typedef struct gff_region_object_s {
+    uint16_t region_id, etab_id;
+    gff_ojff_t ojff;
+    gff_scmd_t *scmd;
+} gff_region_object_t;
 
 enum {
     RACE_MONSTER,
@@ -159,5 +163,6 @@ enum {
 };
 
 extern int gff_ojff_read(gff_file_t *f, int object_index, gff_ojff_t *ojff);
+extern int gff_region_object_free(gff_region_object_t *obj);
 
 #endif

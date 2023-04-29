@@ -15,9 +15,10 @@ void tearDown() {
 }
 
 void test_rgn08(void) {
+    uint32_t amt;
     gff_file_t *f = gff_allocate();
     TEST_ASSERT_NOT_NULL(f);
-    TEST_ASSERT(-1 == gff_map_get_num_objects(f, 8));
+    TEST_ASSERT(EXIT_FAILURE == gff_map_get_num_objects(f, &amt));
 
     TS(gff_open(f, "ds1/RGN08.GFF"));
     //for (int i = 0; i < gff_get_number_of_types(f); i++) {

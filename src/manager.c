@@ -1,6 +1,8 @@
 #include "gff/debug.h"
 #include "gff/gff.h"
+#include "gff/gfftypes.h"
 #include "gff/manager.h"
+#include "gff/map.h"
 
 #include <string.h>
 #include <dirent.h>
@@ -32,7 +34,7 @@ static int is_gff_filename(const char *str) {
 }
 
 static int detect_and_load_core_ds1(gff_manager_t *man, const char *full_path, const char *name) {
-    uint32_t region_num;
+    uint32_t region_num = 0;
     gff_file_t *file = NULL;
     gff_file_t **dest = NULL;
 
@@ -82,6 +84,7 @@ load_file:
     if (gff_open(file, full_path)) {
         goto file_open_error;
     }
+    file->id = region_num;
     *dest = file;
     file = NULL;
     return EXIT_SUCCESS;
@@ -109,8 +112,96 @@ extern int gff_manager_load_ds1(gff_manager_t *man, const char *path) {
         closedir (dir);
     } else {
         fprintf(stderr, "Unable to open directory: '%s'\n", path);
+        goto dir_failure;
     }
 
+    return EXIT_SUCCESS;
+
+dir_failure:
+    return EXIT_FAILURE;
+}
+
+#define RDFF_MAX (1<<12)
+
+extern int gff_manager_create_ds1_region_object(gff_manager_t *man, int region, int etab_id, gff_region_object_t *obj) {
+    //gff_chunk_header_t chunk;
+    uint32_t amt;
+    int32_t ojff_index;
+    gff_file_t *f;
+
+    f = man->ds1.regions[region];
+    if (f->num_objects <= 0) {
+        if (gff_map_get_num_objects(f, &amt)) {
+            goto etab_error;
+        }
+    }
+
+    if (etab_id < 0 || etab_id >= f->num_objects) {
+        goto bounds_error;
+    }
+
+    memset(obj, 0x0, sizeof(gff_region_object_t));
+    obj->region_id = region;
+    obj->etab_id = etab_id;
+    ojff_index = f->entry_table[etab_id].index;
+
+    if (gff_ojff_read(man->ds1.segobjex, -ojff_index, &obj->ojff)) {
+        debug("could not ready ojff!\n");
+        goto ojff_error;
+    }
+
+    if (obj->ojff.script_id
+            && gff_scmd_read(man->ds1.segobjex, obj->ojff.script_id, &obj->scmd)) {
+        error("Unable to load object's scmd!");
+        goto scmd_error;
+    }
+
+    return EXIT_SUCCESS;
+scmd_error:
+ojff_error:
+bounds_error:
+etab_error:
+    return EXIT_FAILURE;
+
+    /*
+    gff_idx = OBJEX_GFF_INDEX;
+    gff_read_chunk(gff_idx, &chunk, rdff, chunk.length);
+    rdff_disk_object_t *entry = rdff;
+    char *data = (char*)entry;
+
+    while (entry->load_action != -1) {
+        //printf ("proc = %d, bocknum = %d, type = %d, index = %d, from = %d, len = %d\n",
+                //entry->load_action, entry->blocknum, entry->type, entry->index, entry->from, entry->len);
+        switch(entry->load_action) {
+            case RDFF_OBJECT:
+                //printf("OBJECT\n");
+                data += sizeof(rdff_disk_object_t);
+                ret = gff_create_object((char*) data, entry, -1);
+                return ret;
+                break;
+            case RDFF_CONTAINER:
+                printf("CONTAINER\n");
+                break;
+            case RDFF_DATA:
+                //printf("DATA\n");
+                break;
+            case RDFF_NEXT:
+                printf("NEXT\n");
+                break;
+            case RDFF_END:
+                printf("END\n");
+                break;
+        }
+    
+        // Iterate to the next object
+        tmp = (char*)entry;
+        tmp += sizeof(rdff_disk_object_t);
+        tmp += entry->len;
+        entry = (rdff_disk_object_t *)tmp;
+    }
+
+    return ret;
+    */
     return EXIT_FAILURE;
 }
 

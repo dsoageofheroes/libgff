@@ -36,7 +36,7 @@ typedef struct _gff_map_t {
     uint8_t flags[MAP_ROWS][MAP_COLUMNS];
     uint8_t tiles[MAP_ROWS][MAP_COLUMNS];
     uint32_t *tile_ids;
-    gff_map_object_t *etab;
+    gff_etab_object_t *etab;
     uint32_t num_objects;
 } gff_map_t;
 
@@ -79,6 +79,7 @@ enum {
 // Tested
 extern gff_map_t*     gff_map_load(gff_file_t *f);
 extern int            gff_map_free(gff_map_t *map);
+extern int            gff_map_get_num_objects(gff_file_t *f, uint32_t *amt);
 
 // Not Tested
 extern unsigned char* gff_map_get_object_bmp_pal(gff_file_t *f, int res_id, int obj_id, int *w, int *h, int frame_id,
@@ -92,11 +93,9 @@ extern unsigned char* gff_map_get_object_bmp(gff_file_t *f, int res_id, int obj_
 extern gff_object_t*   gff_create_object(char *data, gff_rdff_header_t *entry, int16_t id);
 
 // Should be moved to a resource file
-extern gff_object_t*   gff_object_inspect(gff_file_t *f, int res_id);
 extern uint16_t       gff_map_get_object_location(gff_file_t *f, int res_id, int obj_id, uint16_t *x, uint16_t *y, uint8_t *z);
 
 // Consider removing
 extern int            gff_map_get_object_frame_count(gff_file_t *f, int res_id, int obj_id);
-extern int            gff_map_get_num_objects(gff_file_t *f, int res_id);
 
 #endif

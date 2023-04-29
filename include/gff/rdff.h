@@ -29,6 +29,6 @@ enum {
 };
 
 extern int gff_rdff_load(gff_file_t *f, int res_id, gff_rdff_t *rdff);
-extern int gff_rdff_to_object(gff_rdff_t *rdff, gff_object_t *ssi);
+extern int gff_rdff_to_object(gff_rdff_t *rdff, gff_object_t *obj);
 
 #endif

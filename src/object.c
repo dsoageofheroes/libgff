@@ -23,3 +23,13 @@ read_error:
 head_error:
     return EXIT_FAILURE;
 }
+
+extern int gff_region_object_free(gff_region_object_t *obj) {
+    if (!obj) { return EXIT_FAILURE; }
+
+    if (obj->scmd) {
+        free(obj->scmd);
+    }
+
+    return EXIT_SUCCESS;
+}

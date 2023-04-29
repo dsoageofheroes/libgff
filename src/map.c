@@ -10,16 +10,16 @@
 #define RDFF_MAX (1<<12)
 #define GMAP_MAX (MAP_ROWS * MAP_COLUMNS)
 
-extern int gff_map_get_num_objects(gff_file_t *f, int res_id) {
+extern int gff_map_get_num_objects(gff_file_t *f, uint32_t *amt) {
     if (!f) { goto null_err; }
 
     if (f->num_objects > 0) {
-        return f->num_objects;
+        *amt = f->num_objects;
     }
 
     if (!f->entry_table) {
         gff_chunk_header_t chunk;
-        if (gff_find_chunk_header(f, &chunk, GFF_ETAB, res_id) == EXIT_FAILURE) {
+        if (gff_find_chunk_header(f, &chunk, GFF_ETAB, f->id) == EXIT_FAILURE) {
             goto dne;
         }
         f->entry_table = malloc(chunk.length);
@@ -28,13 +28,14 @@ extern int gff_map_get_num_objects(gff_file_t *f, int res_id) {
             exit(1);
         }
         gff_read_chunk(f, &chunk, f->entry_table, chunk.length);
-        f->num_objects = chunk.length / sizeof(gff_map_object_t);
+        f->num_objects = chunk.length / sizeof(gff_etab_object_t);
     }
 
-    return f->num_objects;
+    *amt = f->num_objects;
+    return EXIT_SUCCESS;
 dne:
 null_err:
-    return -1;
+    return EXIT_FAILURE;
 }
 
 /*
@@ -88,6 +89,7 @@ extern int gff_map_load_scmd(gff_entity_t *dude) {
 
 extern unsigned char* gff_map_get_object_bmp_pal(gff_file_t *f, int res_id, int obj_id, int *w, int *h, int frame_id,
         int palette_id) {
+    /*
     int num_objects = gff_map_get_num_objects(f, res_id);
     //gff_ojff_t disk_object;
 
@@ -97,6 +99,7 @@ extern unsigned char* gff_map_get_object_bmp_pal(gff_file_t *f, int res_id, int 
 
     gff_map_object_t *entry_table = f->entry_table;
     if (entry_table == NULL) { return NULL; }
+    */
 
     /*
     gff_read_object(entry_table[obj_id].index, &disk_object);
@@ -317,7 +320,7 @@ static int load_map_etab(gff_file_t *f, gff_map_t *map) {
         error ("unable to read entry table!\n");
         goto read_error;
     }
-    map->num_objects = chunk.length / sizeof(gff_map_object_t);
+    map->num_objects = chunk.length / sizeof(gff_etab_object_t);
 
     free(gmap_ids);
     return EXIT_SUCCESS;
