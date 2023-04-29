@@ -1,7 +1,7 @@
 #include "gff/rdff.h"
 #include "gff/gff.h"
 #include "gff/gfftypes.h"
-#include "gff/map.h"
+#include "gff/region.h"
 
 #include <stdlib.h>
 #include <string.h>

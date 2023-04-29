@@ -25,11 +25,11 @@ typedef struct gff_gui_item_s {
     uint16_t flags;
 } __attribute__ ((__packed__)) gff_gui_item_t;
 
-typedef struct gff_region_s {
+typedef struct gff_gui_region_s {
     uint16_t depth;
     gff_rect_t bounds;
     gff_rect_t regions[16];
-} gff_region_t;
+} gff_gui_region_t;
 
 typedef struct gff_frame_s {
     uint16_t flags;
@@ -49,7 +49,7 @@ typedef struct gff_frame_s {
 
 typedef struct gff_window_s {
     gff_resource_header_t rh;
-    gff_region_t region;
+    gff_gui_region_t region;
     int16_t x;
     int16_t y;
     int8_t data[4];

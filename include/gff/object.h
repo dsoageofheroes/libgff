@@ -113,12 +113,6 @@ typedef struct gff_object_s {
     } data;
 } gff_object_t;
 
-typedef struct gff_region_object_s {
-    uint16_t region_id, etab_id;
-    gff_ojff_t ojff;
-    gff_scmd_t *scmd;
-} gff_region_object_t;
-
 enum {
     RACE_MONSTER,
     RACE_HUMAN,
@@ -163,6 +157,5 @@ enum {
 };
 
 extern int gff_ojff_read(gff_file_t *f, int object_index, gff_ojff_t *ojff);
-extern int gff_region_object_free(gff_region_object_t *obj);
 
 #endif

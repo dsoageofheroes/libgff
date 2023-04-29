@@ -4,9 +4,9 @@ set(LIBGFF_SRCS
     char.c
     gff.c
     gfftypes.c
-    map.c
     manager.c
     rdff.c
+    region.c
     object.c
     scmd.c
     gui.c

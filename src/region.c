@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "gff/map.h"
+#include "gff/region.h"
 #include "gff/gff.h"
 #include "gff/gfftypes.h"
 #include "gff/gpl.h"
@@ -10,7 +10,7 @@
 #define RDFF_MAX (1<<12)
 #define GMAP_MAX (MAP_ROWS * MAP_COLUMNS)
 
-extern int gff_map_get_num_objects(gff_file_t *f, uint32_t *amt) {
+extern int gff_region_get_num_objects(gff_file_t *f, uint32_t *amt) {
     if (!f) { goto null_err; }
 
     if (f->num_objects > 0) {
@@ -39,15 +39,15 @@ null_err:
 }
 
 /*
-extern int gff_map_get_object_frame_count(gff_file_t *f, int res_id, int obj_id) {
-    int num_objects = gff_map_get_num_objects(f, res_id);
+extern int gff_region_get_object_frame_count(gff_file_t *f, int res_id, int obj_id) {
+    int num_objects = gff_region_get_num_objects(f, res_id);
     disk_object_t disk_object;
 
     if (!f || obj_id < 0 || obj_id >= num_objects) {
         return -1;
     }
 
-    gff_map_object_t *entry_table = f->entry_table;
+    gff_region_object_t *entry_table = f->entry_table;
     if (entry_table == NULL) { return EXIT_FAILURE; }
 
     gff_read_object(entry_table[obj_id].index, &disk_object);
@@ -59,15 +59,15 @@ extern int gff_map_get_object_frame_count(gff_file_t *f, int res_id, int obj_id)
 */
 
 /*
-int gff_map_fill_scmd_info(gff_dude_t *dude, int gff_index, int res_id, int obj_id, int scmd_index) {
-    int num_objects = gff_map_get_num_objects(gff_index, res_id);
+int gff_region_fill_scmd_info(gff_dude_t *dude, int gff_index, int res_id, int obj_id, int scmd_index) {
+    int num_objects = gff_region_get_num_objects(gff_index, res_id);
     disk_object_t disk_object;
 
     if (!dude || gff_index < 0 || gff_index >= NUM_FILES || obj_id < 0 || obj_id >= num_objects) {
         return 0;
     }
 
-    gff_map_object_t *entry_table = open_files[gff_index].entry_table;
+    gff_region_object_t *entry_table = open_files[gff_index].entry_table;
     if (entry_table == NULL) { return 0; }
     gff_read_object(entry_table[obj_id].index, &disk_object);
 
@@ -78,7 +78,7 @@ int gff_map_fill_scmd_info(gff_dude_t *dude, int gff_index, int res_id, int obj_
     return 1;
 }
 
-extern int gff_map_load_scmd(gff_entity_t *dude) {
+extern int gff_region_load_scmd(gff_entity_t *dude) {
     if (!dude) { return 0; }
 
     //printf("scmd loading: %d, %d, %d\n", dude->anim.scmd_info.gff_idx, dude->anim.scmd_info.res_id, dude->anim.scmd_info.index);
@@ -87,17 +87,17 @@ extern int gff_map_load_scmd(gff_entity_t *dude) {
 }
 */
 
-extern unsigned char* gff_map_get_object_bmp_pal(gff_file_t *f, int res_id, int obj_id, int *w, int *h, int frame_id,
+extern unsigned char* gff_region_get_object_bmp_pal(gff_file_t *f, int res_id, int obj_id, int *w, int *h, int frame_id,
         int palette_id) {
     /*
-    int num_objects = gff_map_get_num_objects(f, res_id);
+    int num_objects = gff_region_get_num_objects(f, res_id);
     //gff_ojff_t disk_object;
 
     if (!f || obj_id < 0 || obj_id >= num_objects) {
         return NULL;
     }
 
-    gff_map_object_t *entry_table = f->entry_table;
+    gff_region_object_t *entry_table = f->entry_table;
     if (entry_table == NULL) { return NULL; }
     */
 
@@ -118,13 +118,13 @@ extern unsigned char* gff_map_get_object_bmp_pal(gff_file_t *f, int res_id, int 
     return NULL;
 }
 
-extern unsigned char* gff_map_get_object_bmp(gff_file_t *f, int res_id, int obj_id, int *w, int *h, int frame_id) {
-    return gff_map_get_object_bmp_pal(f, res_id, obj_id, w, h, frame_id, -1);
+extern unsigned char* gff_region_get_object_bmp(gff_file_t *f, int res_id, int obj_id, int *w, int *h, int frame_id) {
+    return gff_region_get_object_bmp_pal(f, res_id, obj_id, w, h, frame_id, -1);
 }
 
 /*
-extern uint16_t gff_map_get_object_location(gff_file_t *f, int res_id, int obj_id, uint16_t *x, uint16_t *y, uint8_t *z) {
-    int num_objects = gff_map_get_num_objects(f, res_id);
+extern uint16_t gff_region_get_object_location(gff_file_t *f, int res_id, int obj_id, uint16_t *x, uint16_t *y, uint8_t *z) {
+    int num_objects = gff_region_get_num_objects(f, res_id);
     disk_object_t disk_object;
 
     if (!f || obj_id < 0 || obj_id >= num_objects) {
@@ -132,7 +132,7 @@ extern uint16_t gff_map_get_object_location(gff_file_t *f, int res_id, int obj_i
         return 0;
     }
 
-    gff_map_object_t *entry = f->entry_table;
+    gff_region_object_t *entry = f->entry_table;
     if (entry == NULL) { *x = *y = 0xFFFF; return 0; }
     gff_read_object(entry[obj_id].index, &disk_object);
     //if (disk_object->script_id > 0) {
@@ -225,7 +225,7 @@ gff_object_t* gff_create_object(char *data, gff_rdff_header_t *entry, int16_t id
     return obj;
 }
 
-static int load_map_flags(gff_file_t *f, gff_map_t *map) {
+static int load_region_flags(gff_file_t *f, gff_region_t *region) {
     uint32_t len;
     unsigned int *gmap_ids = gff_get_id_list(f, GFF_GMAP, &len);
     gff_chunk_header_t chunk;
@@ -239,22 +239,24 @@ static int load_map_flags(gff_file_t *f, gff_map_t *map) {
         goto chunk_length_error;
     }
 
-    if (!gff_read_chunk(f, &chunk, map->flags, chunk.length)) {
+    if (!gff_read_chunk(f, &chunk, region->flags, chunk.length)) {
         error ("Unable to read GFF_GMAP chunk!\n");
-        goto map_read_error;
+        goto region_read_error;
     }
+
+    region->id = f->id;
 
     free(gmap_ids);
     return EXIT_SUCCESS;
 
-map_read_error:
+region_read_error:
 chunk_length_error:
 chunk_error:
     free(gmap_ids);
     return EXIT_FAILURE;
 }
 
-static int load_tiles(gff_file_t *f, gff_map_t *map) {
+static int load_tiles(gff_file_t *f, gff_region_t *region) {
     uint32_t len;
     unsigned int *rmap_ids = gff_get_id_list(f, GFF_RMAP, &len);
     unsigned char *data;
@@ -282,10 +284,10 @@ static int load_tiles(gff_file_t *f, gff_map_t *map) {
     if (gff_get_resource_length(f, GFF_TILE, &len)) {
         goto get_length_error;
     }
-    memcpy(map->tiles, data, chunk.length);
+    memcpy(region->tiles, data, chunk.length);
 
     free(data);
-    map->tile_ids = gff_get_id_list(f, GFF_TILE, &len);
+    region->tile_ids = gff_get_id_list(f, GFF_TILE, &len);
 
     free(rmap_ids);
     return EXIT_SUCCESS;
@@ -299,7 +301,7 @@ dne:
     return EXIT_FAILURE;
 }
 
-static int load_map_etab(gff_file_t *f, gff_map_t *map) {
+static int load_region_etab(gff_file_t *f, gff_region_t *region) {
     uint32_t len;
     unsigned int *gmap_ids = gff_get_id_list(f, GFF_GMAP, &len);
 
@@ -310,17 +312,17 @@ static int load_map_etab(gff_file_t *f, gff_map_t *map) {
         goto dne;
     }
 
-    map->etab = malloc(chunk.length);
-    if (!map->etab) {
+    region->etab = malloc(chunk.length);
+    if (!region->etab) {
         error ("unable to malloc for entry table!\n");
         goto memory_error;
     }
 
-    if (!gff_read_chunk(f, &chunk, map->etab, chunk.length)) {
+    if (!gff_read_chunk(f, &chunk, region->etab, chunk.length)) {
         error ("unable to read entry table!\n");
         goto read_error;
     }
-    map->num_objects = chunk.length / sizeof(gff_etab_object_t);
+    region->num_objects = chunk.length / sizeof(gff_etab_object_t);
 
     free(gmap_ids);
     return EXIT_SUCCESS;
@@ -332,32 +334,32 @@ null_err:
     return EXIT_FAILURE;
 }
 
-extern gff_map_t* gff_map_load(gff_file_t *f) {
-    gff_map_t *map;
+extern gff_region_t* gff_region_load(gff_file_t *f) {
+    gff_region_t *region;
 
     if (!f) { return NULL; }
 
-    map = (gff_map_t*) malloc(sizeof(gff_map_t));
-    if (!map) { goto memory_error; }
+    region = (gff_region_t*) malloc(sizeof(gff_region_t));
+    if (!region) { goto memory_error; }
 
-    if (load_map_etab(f, map)) {
+    if (load_region_etab(f, region)) {
         goto etab_error;
     }
 
-    if (load_map_flags(f, map)) {
+    if (load_region_flags(f, region)) {
         goto flag_error;
     }
 
-    if (load_tiles(f, map)) {
+    if (load_tiles(f, region)) {
         goto tile_error;
     }
 
-    return map;
+    return region;
 
 etab_error:
 flag_error:
 tile_error:
-    gff_map_free(map);
+    gff_region_free(region);
 memory_error:
     return NULL;
 }
@@ -420,20 +422,38 @@ extern gff_object_t* gff_object_inspect(gff_file_t *f, int res_id) {
     */
 }
 
-extern int gff_map_free(gff_map_t *map) {
-    if (!map) { return EXIT_FAILURE; }
+extern int gff_region_object_free(gff_region_object_t *obj) {
+    if (!obj) { return EXIT_FAILURE; }
 
-    if (map->tile_ids) {
-        free(map->tile_ids);
-        map->tile_ids = NULL;
+    if (obj->scmd) {
+        free(obj->scmd);
     }
 
-    if (map->etab) {
-        free(map->etab);
-        map->etab = NULL;
+    return EXIT_SUCCESS;
+}
+
+extern int gff_region_free(gff_region_t *region) {
+    if (!region) { return EXIT_FAILURE; }
+
+    if (region->objs) {
+        for (int i = 0; i < region->num_objects; i++) {
+            gff_region_object_free(region->objs + i);
+        }
+        free(region->objs);
+        region->objs = NULL;
     }
 
-    free(map);
+    if (region->tile_ids) {
+        free(region->tile_ids);
+        region->tile_ids = NULL;
+    }
+
+    if (region->etab) {
+        free(region->etab);
+        region->etab = NULL;
+    }
+
+    free(region);
 
     return EXIT_SUCCESS;
 }

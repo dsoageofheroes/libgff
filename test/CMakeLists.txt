@@ -7,8 +7,8 @@ include_directories(../unity)
 set(TEST_NAMES 
     ds1-basic
     ds1-image
-    ds1-map
     ds1-manager
+    ds1-region
     ds1-resource
     ds1-segobjex
 )

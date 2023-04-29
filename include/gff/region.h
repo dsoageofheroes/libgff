@@ -32,13 +32,20 @@
 #define GM_ANIMATING (0x01)
 #define GM_STATIC    (0x02)
 
-typedef struct _gff_map_t {
+typedef struct gff_region_object_s {
+    uint16_t region_id, etab_id;
+    gff_ojff_t ojff;
+    gff_scmd_t *scmd;
+} gff_region_object_t;
+
+typedef struct gff_region_s {
     uint8_t flags[MAP_ROWS][MAP_COLUMNS];
     uint8_t tiles[MAP_ROWS][MAP_COLUMNS];
     uint32_t *tile_ids;
     gff_etab_object_t *etab;
-    uint32_t num_objects;
-} gff_map_t;
+    uint32_t num_objects, id;
+    gff_region_object_t *objs;
+} gff_region_t;
 
 // The small 'n' means next. IE: nbmp_idx = next bitmap index.
 typedef struct _gff_script_cmd_t {
@@ -54,6 +61,8 @@ typedef struct _gff_script_cmd_t {
 
 #define MAX_SCRIPTS (240)
 #define MAX_SCRIPT_JUMPS (36)
+#define NULL_OBJECT (9999) // why 9999?  I dunno!
+
 typedef struct _gff_script_jump_t {
     uint16_t jump_ids[MAX_SCRIPTS][MAX_SCRIPT_JUMPS];
 } gff_script_jump_t;
@@ -74,28 +83,27 @@ enum {
     SO_DS1_ITEM
 };
 
-#define NULL_OBJECT (9999) // why 9999?  I dunno!
-
 // Tested
-extern gff_map_t*     gff_map_load(gff_file_t *f);
-extern int            gff_map_free(gff_map_t *map);
-extern int            gff_map_get_num_objects(gff_file_t *f, uint32_t *amt);
+extern gff_region_t*  gff_region_load(gff_file_t *f);
+extern int            gff_region_free(gff_region_t *region);
+extern int            gff_region_get_num_objects(gff_file_t *f, uint32_t *amt);
+extern int            gff_region_object_free(gff_region_object_t *obj);
 
 // Not Tested
-extern unsigned char* gff_map_get_object_bmp_pal(gff_file_t *f, int res_id, int obj_id, int *w, int *h, int frame_id,
+extern unsigned char* gff_region_get_object_bmp_pal(gff_file_t *f, int res_id, int obj_id, int *w, int *h, int frame_id,
         int palette_id);
-extern unsigned char* gff_map_get_object_bmp(gff_file_t *f, int res_id, int obj_id, int *w, int *h, int frame_id);
+extern unsigned char* gff_region_get_object_bmp(gff_file_t *f, int res_id, int obj_id, int *w, int *h, int frame_id);
 
-//extern int            gff_map_fill_scmd_info(struct gff_entity_s *dude, int gff_index, int res_id, int obj_id, int scmd_index);
-//extern int            gff_map_load_scmd(struct gff_entity_s *dude);
+//extern int            gff_region_fill_scmd_info(struct gff_entity_s *dude, int gff_index, int res_id, int obj_id, int scmd_index);
+//extern int            gff_region_load_scmd(struct gff_entity_s *dude);
 
 // Maybe move to a util directory?
 extern gff_object_t*   gff_create_object(char *data, gff_rdff_header_t *entry, int16_t id);
 
 // Should be moved to a resource file
-extern uint16_t       gff_map_get_object_location(gff_file_t *f, int res_id, int obj_id, uint16_t *x, uint16_t *y, uint8_t *z);
+extern uint16_t       gff_region_get_object_location(gff_file_t *f, int res_id, int obj_id, uint16_t *x, uint16_t *y, uint8_t *z);
 
 // Consider removing
-extern int            gff_map_get_object_frame_count(gff_file_t *f, int res_id, int obj_id);
+extern int            gff_region_get_object_frame_count(gff_file_t *f, int res_id, int obj_id);
 
 #endif

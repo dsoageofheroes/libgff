@@ -2,7 +2,7 @@
 #include "gff/gff.h"
 #include "gff/gfftypes.h"
 #include "gff/manager.h"
-#include "gff/map.h"
+#include "gff/region.h"
 
 #include <string.h>
 #include <dirent.h>
@@ -131,7 +131,7 @@ extern int gff_manager_create_ds1_region_object(gff_manager_t *man, int region, 
 
     f = man->ds1.regions[region];
     if (f->num_objects <= 0) {
-        if (gff_map_get_num_objects(f, &amt)) {
+        if (gff_region_get_num_objects(f, &amt)) {
             goto etab_error;
         }
     }
@@ -203,6 +203,32 @@ etab_error:
     return ret;
     */
     return EXIT_FAILURE;
+}
+
+extern int gff_manager_load_region_objects(gff_manager_t *man, gff_region_t *reg) {
+    if (!man || ! reg) { return EXIT_FAILURE; }
+
+    reg->objs = malloc(sizeof(gff_region_object_t) * reg->num_objects);
+    if (!reg->objs) {
+        goto obj_mem_error;
+    }
+
+    for (int i = 0; i < reg->num_objects; i++) {
+        if (gff_manager_create_ds1_region_object(man, reg->id, i, &reg->objs[i])) {
+            goto obj_read_error;
+        }
+    }
+
+    return EXIT_SUCCESS;
+
+obj_read_error:
+    // We would need to do some serious cleanup here...
+obj_mem_error:
+    return EXIT_FAILURE;
+}
+
+extern int gff_manager_read_window(gff_ds1_manager_t *man, int res_id, gff_window_t **win) {
+    return gff_read_window(man->resource, res_id, win);
 }
 
 extern int gff_manager_free(gff_manager_t *man) {

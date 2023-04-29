@@ -5,9 +5,11 @@
 #include <stdint.h>
 
 #include "gff/common.h"
+#include "gff/gui.h"
 #include "gff/manager.h"
-#include "gff/status.h"
 #include "gff/object.h"
+#include "gff/status.h"
+#include "gff/region.h"
 
 #define DS1_MAX_REGIONS (50)
 
@@ -25,7 +27,9 @@ extern gff_manager_t* gff_manager_create();
 extern int            gff_manager_free(gff_manager_t *man);
 
 extern int            gff_manager_load_ds1(gff_manager_t *man, const char *path);
+extern int            gff_manager_load_region_objects(gff_manager_t *man, gff_region_t *reg);
 extern int            gff_manager_create_ds1_region_object(gff_manager_t *man, int region, int etab_id, gff_region_object_t *obj);
+extern int            gff_manager_read_window(gff_ds1_manager_t *man, int res_id, gff_window_t **win);
 /*
 extern gff_status_t gff_gpl_manager_init();
 extern gff_status_t gff_gpl_manager_cleanup();
