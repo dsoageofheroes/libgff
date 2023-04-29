@@ -3,11 +3,8 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "common.h"
-#include "image.h"
-#include "map.h"
-#include "status.h"
 
+#include "common.h"
 
 // Need to find location for these:
 #define MAX_MONSTERS_PER_REGION (10)

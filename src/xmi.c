@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "xmi.h"
+#include "gff/xmi.h"
 #include "xmi2mid.h"
 
 unsigned char* gff_xmi_to_midi_type(const unsigned char *xmi_data, const unsigned int xmi_len, unsigned int *midi_len,

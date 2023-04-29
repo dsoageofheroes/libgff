@@ -8,6 +8,7 @@ set(TEST_NAMES
     ds1-basic
     ds1-image
     ds1-map
+    ds1-manager
     ds1-resource
     ds1-segobjex
 )

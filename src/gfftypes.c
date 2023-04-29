@@ -1,4 +1,4 @@
-#include "gfftypes.h"
+#include "gff/gfftypes.h"
 
 const char* gff_type_to_str(uint32_t type) {
     switch(type) {

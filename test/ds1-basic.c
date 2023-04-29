@@ -1,8 +1,8 @@
 #include <stdlib.h>
 
 #include "unity.h"
-#include "gff.h"
-#include "gfftypes.h"
+#include "gff/gff.h"
+#include "gff/gfftypes.h"
 
 #define TS(a) TEST_ASSERT(a == EXIT_SUCCESS)
 #define BUF_SIZE (1<<12)

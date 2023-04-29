@@ -1,6 +1,6 @@
-#include "gui.h"
-#include "gff.h"
-#include "gfftypes.h"
+#include "gff/gui.h"
+#include "gff/gff.h"
+#include "gff/gfftypes.h"
 
 #include <stdlib.h>
 

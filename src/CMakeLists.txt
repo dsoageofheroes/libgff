@@ -5,6 +5,7 @@ set(LIBGFF_SRCS
     gff.c
     gfftypes.c
     map.c
+    manager.c
     rdff.c
     object.c
     scmd.c

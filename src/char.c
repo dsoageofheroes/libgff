@@ -1,7 +1,7 @@
-#include "char.h"
-#include "gfftypes.h"
-#include "common.h"
-#include "gff.h"
+#include "gff/char.h"
+#include "gff/gfftypes.h"
+#include "gff/common.h"
+#include "gff/gff.h"
 //#include "rules.h"
 //#include "port.h"
 #include <string.h>

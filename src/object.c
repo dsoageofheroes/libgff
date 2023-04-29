@@ -1,8 +1,8 @@
 #include <stdlib.h>
 
-#include "gff.h"
-#include "gfftypes.h"
-#include "object.h"
+#include "gff/gff.h"
+#include "gff/gfftypes.h"
+#include "gff/object.h"
 
 extern int gff_ojff_read(gff_file_t *f, int object_index, gff_ojff_t *ojff) {
     if (!ojff) { return EXIT_FAILURE; }

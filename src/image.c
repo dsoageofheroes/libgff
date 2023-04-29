@@ -2,18 +2,19 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "image.h"
-#include "gff.h"
-#include "gfftypes.h"
-#include "gpl.h"
-#include "gui.h"
-#include <string.h>
+#include "gff/common.h"
+#include "gff/debug.h"
+#include "gff/gff.h"
+#include "gff/gfftypes.h"
+#include "gff/gui.h"
+#include "gff/image.h"
 
 #define NUM_PALETTES (256)
 #define FONT_NUM (1<<8)
 #define get_distance_to_chunk(a, b) ((unsigned long)a - (unsigned long)b)
 #define RES_COUNT (256)
 #define PAL_MAX   (1<<12)
+
 
 static unsigned char* create_initialized_image_rgb(const unsigned int w, const unsigned h);
 static int plnr_get_mask(const int bits_to_read);

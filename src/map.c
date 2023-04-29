@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
-#include "map.h"
-#include "gff.h"
-#include "gfftypes.h"
-#include "gpl.h"
+#include "gff/map.h"
+#include "gff/gff.h"
+#include "gff/gfftypes.h"
+#include "gff/gpl.h"
 //#include "region.h"
 //#include "combat.h"
 

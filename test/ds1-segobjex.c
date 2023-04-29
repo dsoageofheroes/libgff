@@ -1,9 +1,10 @@
 #include <stdlib.h>
 
 #include "unity.h"
-#include "gff.h"
-#include "gfftypes.h"
-#include "scmd.h"
+#include "gff/gff.h"
+#include "gff/gfftypes.h"
+#include "gff/rdff.h"
+#include "gff/scmd.h"
 
 #define TS(a) TEST_ASSERT(a == EXIT_SUCCESS)
 #define TF(a) TEST_ASSERT(a == EXIT_FAILURE)

@@ -4,8 +4,26 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "common.h"
+#include "manager.h"
 #include "status.h"
 
+#define DS1_MAX_REGIONS (50)
+
+typedef struct gff_ds1_manager_s {
+    gff_file_t *resource, *segobjex, *gpl, *cine;
+    gff_file_t *regions[DS1_MAX_REGIONS];
+    gff_file_t *wild_region;
+} gff_ds1_manager_t;
+
+typedef struct gff_manager_s {
+    gff_ds1_manager_t ds1;
+} gff_manager_t;
+
+extern gff_manager_t* gff_manager_create();
+extern int            gff_manager_free(gff_manager_t *man);
+
+extern int            gff_manager_load_ds1(gff_manager_t *man, const char *path);
 /*
 extern gff_status_t gff_gpl_manager_init();
 extern gff_status_t gff_gpl_manager_cleanup();

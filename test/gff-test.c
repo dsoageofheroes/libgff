@@ -1,6 +1,6 @@
 #include "unity.h"
-#include "gff.h"
-#include "gfftypes.h"
+#include "gff/gff.h"
+#include "gff/gfftypes.h"
 
 void setUp() {
     gff_init();

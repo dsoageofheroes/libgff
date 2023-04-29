@@ -1,6 +1,7 @@
-#include "gff.h"
-#include "gfftypes.h"
-#include "gpl.h"
+#include "gff/gff.h"
+#include "gff/image.h"
+#include "gff/gfftypes.h"
+#include "gff/gpl.h"
 
 #include <stdlib.h>
 #include <string.h>

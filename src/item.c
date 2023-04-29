@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "gff.h"
-#include "gfftypes.h"
-#include "item.h"
-#include "rdff.h"
+#include "gff/gff.h"
+#include "gff/gfftypes.h"
+#include "gff/item.h"
+#include "gff/rdff.h"
 #include <string.h>
 
 

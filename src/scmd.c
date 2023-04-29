@@ -1,8 +1,8 @@
 #include <stdlib.h>
 
-#include "gff.h"
-#include "gpl.h"
-#include "scmd.h"
+#include "gff/gff.h"
+#include "gff/gpl.h"
+#include "gff/scmd.h"
 
 //static unsigned char scmds[SCMD_MAX][SCMD_MAX];
 static gff_scmd_t empty_scmd = {
