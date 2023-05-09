@@ -55,7 +55,7 @@ void test_resource(void) {
     TEST_ASSERT_EQUAL(6, info.w);
     TEST_ASSERT_EQUAL(8, info.h);
     unsigned char *data = gff_get_frame_rgba_palette(f, GFF_ICON, ids[0], 0, f->pals->palettes + 0);
-    printf("ID: %d, data: %p\n", ids[0], data);
+    //printf("ID: %d, data: %p\n", ids[0], data);
     TEST_ASSERT_NOT_NULL(data);
     free(data);
     data = gff_get_frame_rgba_palette(f, GFF_ICON, ids[0], 5, f->pals->palettes + 0);

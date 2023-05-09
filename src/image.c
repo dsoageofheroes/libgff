@@ -220,6 +220,7 @@ int gff_get_frame_height(gff_file_t *f, int type_id, int res_id, int frame_id) {
 }
 
 static unsigned char* create_initialized_image_rgb(const unsigned int w, const unsigned h) {
+    if (w == 0 || h == 0) { return NULL; }
     unsigned char *img = malloc(sizeof(uint8_t) * 4 * w * h);
     //printf("img = %p, %d x %d\n", img, w, h);
     if (img == NULL) { return NULL; }
@@ -230,6 +231,9 @@ static unsigned char* create_initialized_image_rgb(const unsigned int w, const u
 unsigned char* create_ds1_rgba(unsigned char *chunk, int cpos, const int width, const int height, const gff_palette_t *cpal) {
     int num_rows = 0;
     unsigned char* img = create_initialized_image_rgb(width, height);
+
+    if (!img) { return NULL; }
+
     while (num_rows < height) {
         int row_num = *(chunk + cpos++);
 
