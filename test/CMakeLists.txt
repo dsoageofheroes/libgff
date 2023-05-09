@@ -6,6 +6,7 @@ include_directories(../unity)
 
 set(TEST_NAMES 
     ds1-basic
+    ds1-gpldata
     ds1-image
     ds1-manager
     ds1-region

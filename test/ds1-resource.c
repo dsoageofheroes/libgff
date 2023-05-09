@@ -73,8 +73,8 @@ void test_rdat(void) {
 
 void test_font(void) {
     gff_file_t *f = gff_allocate();
-    ds_font_t *font;
-    ds_char_t *ds_char = NULL;
+    gff_font_t *font;
+    gff_char_t *ds_char = NULL;
 
     TEST_ASSERT_NOT_NULL(f);
     TS(gff_open(f, "ds1/RESOURCE.GFF"));
@@ -82,7 +82,7 @@ void test_font(void) {
     TS(gff_read_font(f, 100, &font));
     int count = 0;
     for (int c = 0; c < MAX_CHARS; c++ ) {
-        ds_char = (ds_char_t*)(((uint8_t*)font) + font->char_offset[c]);
+        ds_char = (gff_char_t*)(((uint8_t*)font) + font->char_offset[c]);
         if (ds_char->width > 0) {
             count++;
         }
@@ -125,11 +125,8 @@ void test_ebox(void) {
 
     unsigned int* ids = gff_get_id_list(f, GFF_EBOX, &len);
     for (int i = 0; i < len; i++) {
-        //TS(gff_read_text(f, ids[i], buf, BUF_SIZE));
-        //(gff_read_ebox(f, ids[i], buf, BUF_SIZE));
-        //TS(gff_read_button(f, ids[i], &button));
+        //printf("EBOX: %d, %d, %lu\n", ids[i], gff_read_ebox(f, ids[i], &ebox), sizeof(gff_ebox_t));
         TS(gff_read_ebox(f, ids[i], &ebox));
-        //printf("buf = '%s'\n", buf);
     }
     free(ids);
 
@@ -146,6 +143,7 @@ void test_window(void) {
 
     unsigned int* ids = gff_get_id_list(f, GFF_WIND, &len);
     for (int i = 0; i < len; i++) {
+        //printf("ids[%d] = %d\n", i, ids[i]);
         //TS(gff_read_text(f, ids[i], buf, BUF_SIZE));
         //(gff_read_ebox(f, ids[i], buf, BUF_SIZE));
         TS(gff_read_window(f, ids[i], &win));
@@ -182,7 +180,7 @@ void test_button(void) {
 void test_frame(void) {
     gff_file_t *f = gff_allocate();
     uint32_t len;
-    gff_frame_t frame;
+    //gff_frame_t frame;
 
     TEST_ASSERT_NOT_NULL(f);
     TS(gff_open(f, "ds1/RESOURCE.GFF"));
@@ -192,7 +190,35 @@ void test_frame(void) {
         //printf("->%d\n", ids[i]);
         //TS(gff_read_text(f, ids[i], buf, BUF_SIZE));
         //(gff_read_ebox(f, ids[i], buf, BUF_SIZE));
-        TS(gff_read_frame(f, ids[i], &frame));
+        //TS(gff_read_frame(f, ids[i], &frame));
+        //printf("len = %d\n", button.textlen);
+        //printf("buf = '%s'\n", buf);
+    }
+    free(ids);
+
+    TS(gff_free(f));
+}
+
+void test_pal(void) {
+    gff_file_t *f = gff_allocate();
+    uint32_t len;
+    gff_raw_palette_t pal;
+
+    TEST_ASSERT_NOT_NULL(f);
+    TS(gff_open(f, "ds1/RESOURCE.GFF"));
+
+    unsigned int* ids = gff_get_id_list(f, GFF_PAL, &len);
+    for (int i = 0; i < len; i++) {
+        printf("PAL: %d\n", ids[i]);
+        TS(gff_read_raw_pal(f, ids[i], &pal));
+
+        //int i = 239;
+        //printf("%d: 0x%02x%02x%02x\n", i, pal.color[i].r, pal.color[i].g, pal.color[i].b);
+        //TS(gff_read_text(f, ids[i], buf, BUF_SIZE));
+        //(gff_read_ebox(f, ids[i], buf, BUF_SIZE));
+        //for (int i = 0; i < 256; i++) {
+            //printf("%d: 0x%02x%02x%02x\n", i, pal.color[i].r, pal.color[i].g, pal.color[i].b);
+        //}
         //printf("len = %d\n", button.textlen);
         //printf("buf = '%s'\n", buf);
     }
@@ -212,5 +238,6 @@ int main(void) {
     RUN_TEST(test_window);
     RUN_TEST(test_button);
     RUN_TEST(test_frame);
+    RUN_TEST(test_pal);
     return UNITY_END();
 }

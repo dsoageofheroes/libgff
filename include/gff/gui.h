@@ -44,7 +44,7 @@ typedef struct gff_frame_s {
     uint32_t background_bmp;
     int8_t data1[4]; // This may be two bytes.
     char title[24];
-    char data0[44];
+    //char data0[44];
 } __attribute__ ((__packed__)) gff_frame_t;
 
 typedef struct gff_window_s {
@@ -98,31 +98,34 @@ typedef struct gff_button_s {
 typedef struct gff_ebox_s {
     gff_resource_header_t rh;
     uint8_t   pad0[4];
-    uint16_t  maxlines, styles, runs, bufsize, user_id;
+    uint16_t  max_lines, styles, runs, size, user_id;
     gff_frame_t frame;
-    uint8_t   data[26]; // gff_ebox_t should be 168 bytes
+    //uint8_t   data[28]; // gff_ebox_t should be 168 bytes
+    uint8_t   data[70]; // gff_ebox_t should be 168 bytes
+    //gff_rect_t rect;
 } __attribute__ ((__packed__)) gff_ebox_t;
 
 #define MAX_CHARS (128)
 
-typedef struct ds_font_s {
+typedef struct gff_font_s {
     uint16_t num;
     uint16_t height;
     uint16_t background_color;
     uint16_t flags;
     uint8_t  colors[256];
     uint16_t char_offset[];
-} ds_font_t;
+} gff_font_t;
 
 typedef struct _ds_char_s {
     uint16_t width;
     uint8_t  data[0];
-} ds_char_t;
+} gff_char_t;
 
-extern int gff_read_font(gff_file_t *f, int res_id, ds_font_t **font);
+extern int gff_read_font(gff_file_t *f, int res_id, gff_font_t **font);
 extern int gff_read_ebox(gff_file_t *f, int res_id, gff_ebox_t *ebox);
 extern int gff_read_window(gff_file_t *f, int res_id, gff_window_t **win);
 extern int gff_read_button(gff_file_t *f, int res_id, gff_button_t *button);
 extern int gff_read_frame(gff_file_t *f, int res_id, gff_frame_t *frame);
+extern int gff_read_raw_pal(gff_file_t *f, int res_id, gff_raw_palette_t *pal);
 
 #endif

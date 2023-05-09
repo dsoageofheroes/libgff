@@ -8,6 +8,7 @@
 #include "gff/gfftypes.h"
 #include "gff/gui.h"
 #include "gff/image.h"
+#include "gff/manager.h"
 
 #define NUM_PALETTES (256)
 #define FONT_NUM (1<<8)
@@ -113,11 +114,18 @@ extern gff_palette_t*  gff_create_palettes(gff_file_t *f, unsigned int *len) {
 extern int gff_get_frame_count(gff_file_t *f, int type_id, int res_id) {
     char buf[16];
     gff_chunk_header_t chunk;
-    gff_find_chunk_header(f, &chunk, type_id, res_id);
+    if (gff_find_chunk_header(f, &chunk, type_id, res_id)) {
+        goto no_header;
+    }
     //printf("chunk: {id = %d, length = %d, location = %d}\n", chunk.id, chunk.length, chunk.location);
-    gff_read_chunk_piece(f, &chunk, buf, 16);
+    if (gff_read_chunk_piece(f, &chunk, buf, 16) != 16) {
+        goto read_error;
+    }
     short num_frames = *((unsigned short*)(buf + 4));
     return num_frames;
+read_error:
+no_header:
+    return 0;
 }
 
 /*
@@ -212,7 +220,8 @@ int gff_get_frame_height(gff_file_t *f, int type_id, int res_id, int frame_id) {
 }
 
 static unsigned char* create_initialized_image_rgb(const unsigned int w, const unsigned h) {
-    unsigned char *img = malloc(sizeof(unsigned char) * 4 * w * h);
+    unsigned char *img = malloc(sizeof(uint8_t) * 4 * w * h);
+    //printf("img = %p, %d x %d\n", img, w, h);
     if (img == NULL) { return NULL; }
     memset(img, 0, sizeof(unsigned char) * 4 * w * h);
     return img;
@@ -227,7 +236,8 @@ unsigned char* create_ds1_rgba(unsigned char *chunk, int cpos, const int width, 
         if (row_num == 0xFF) { break; }
         if (row_num >= height) { goto ds1_img_error; }
 
-        unsigned char *img_row = img + (4*row_num*width);// The current row to edit.
+        //unsigned char *img_row = img + (4*row_num*width);// The current row to edit, original pos
+        unsigned char *img_row = img + (4*(height - row_num - 1)*width);// The current row to edit, vertically flipped
         num_rows++;
         while (1) {
             int startx = *(chunk + cpos++);
@@ -372,11 +382,11 @@ int int_byte_swap(const int val) {
 //TODO: PERFORMANCE: we don't *need* to read the chunk every time, just the first.
 extern unsigned char* gff_create_font_rgba(gff_file_t *f, int c, int fg_color, int bg_color) {
     uint8_t *pixel_idx = NULL;
-    ds_font_t font[FONT_NUM]; // a hack, we need extra data to store the fonts!
+    gff_font_t font[FONT_NUM]; // a hack, we need extra data to store the fonts!
     gff_chunk_header_t chunk;
 
     gff_find_chunk_header(f, &chunk, GFF_FONT, 100);
-    if ((sizeof(ds_font_t) * FONT_NUM) < chunk.length) {
+    if ((sizeof(gff_font_t) * FONT_NUM) < chunk.length) {
         error("ERROR font length > font buf, need to fix!");
         return NULL;
     }
@@ -384,7 +394,7 @@ extern unsigned char* gff_create_font_rgba(gff_file_t *f, int c, int fg_color, i
 
     if (c < 0 || c >= font->num) {return NULL;}
 
-    ds_char_t *ds_char = (ds_char_t*)(((uint8_t*)font) + *(font->char_offset + c));
+    gff_char_t *ds_char = (gff_char_t*)(((uint8_t*)font) + *(font->char_offset + c));
     pixel_idx = ds_char->data;
 
     if (font->height <= 0 || ds_char->width <= 0) { return NULL; }
@@ -435,12 +445,17 @@ extern unsigned char* gff_get_frame_rgba_palette_img(gff_image_entry_t *img, int
     }
 
     frame_offset = *(uint32_t*)(img->data + 6 + frame_id * 4);
+    if (frame_offset + 18 >= img->data_len) {
+        printf("WARNING: can't find frame %d, using frame 0!\n", frame_id);
+        frame_offset = 18;
+    }
     if (frame_offset > img->data_len) { return NULL; }
     width = *(uint16_t*)(img->data + frame_offset);
     height = *(uint16_t*)(img->data + frame_offset + 2);
     frame_type = (img->data + frame_offset + 5);
 
-    //printf("w = %d, h = %d, frame_num = %d, frame_type = '%s'\n", width, height, img->frame_num, frame_type);
+    //printf("w = %d, h = %d, frame_num = %d, frame_offset = %d of %d\n", width, height, img->frame_num, frame_offset, img->data_len);
+
     if (strncmp(frame_type, "PLNR", 4) == 0) {
         printf("PLNR: Not fully implemented!\n");
         //int bits_per_symbol = *(chunk + frame_offset + 9);
@@ -532,6 +547,7 @@ unsigned char* gff_get_portrait(unsigned char* bmp_table, unsigned int *width, u
     *width = *(unsigned short*)(bmp_table + frame_offset);
     *height = *(unsigned short*)(bmp_table + frame_offset + 2);
     char *frame_type = ((char*)(bmp_table + frame_offset + 5));
+    if (frame_type[0] == 'Z') { frame_type[1] = '\0'; }
     if (strncmp(frame_type, "PLNR", 4) == 0) {
         error("get_portrait: PLNR is not supported!\n");
     } else if (strncmp(frame_type, "PLAN", 4) == 0) {
@@ -556,4 +572,70 @@ extern int gff_palettes_free(gff_file_t *f) {
     }
 
     return EXIT_SUCCESS;
+}
+
+extern int gff_manager_font_load(gff_manager_t *man, uint8_t **data, int32_t *w, int32_t *h, const uint32_t fg_color, const uint32_t bg_color) {
+    gff_font_t *font;
+    gff_char_t *ds_char;
+    uint8_t    *pixel_idx;
+    uint8_t    *img, *img_row;
+    int32_t     transparent = 0x00000000;
+    int32_t     total_width = 0, current_width = 0;
+    int32_t     current_column = 0;
+
+    //unsigned char* data = gff_create_font_rgba(man->ds1.resource, 'A', 0x00000000, 0xFFFFFFFF);
+    if (gff_read_font(man->ds1.resource, 100, &font)) {
+        goto read_error;
+    }
+
+    for (int c = 0; c < font->num; c++) {
+        ds_char = (gff_char_t*)(((uint8_t*)font) + *(font->char_offset + c));
+        total_width += ds_char->width;
+    }
+
+    *data = img = calloc(1, 4 * font->height * total_width);
+    *w = total_width;
+    *h = font->height;
+
+    //printf("fg_color = 0x%x, bg_color = 0x%x\n", fg_color, bg_color);
+    int true_fg_color = int_byte_swap(fg_color);
+    int true_bg_color = int_byte_swap(bg_color);
+    for (int c = 0; c < font->num; c++) {
+        ds_char = (gff_char_t*)(((uint8_t*)font) + *(font->char_offset + c));
+        if (ds_char->width < 1) { continue; }
+
+        pixel_idx = ds_char->data;
+
+        //printf("c(%d:'%c'): w:%d h%d\n", c, ds_char->width ? c : 0, ds_char->width, font->height);
+        img_row = img;
+        current_column = 4 * current_width + 4 * total_width * (font->height - 1);
+        for (int x = 0; x < font->height; x++) {
+            img_row = img + current_column;  
+            for (int y = 0; y < ds_char->width; y++, pixel_idx++) {
+                float intensity = font->colors[*pixel_idx] / 255.0;
+                if (intensity <= 0.0001) {
+                    *(int*)(img_row + 4*y) = transparent;
+                    continue;
+                }
+                unsigned char *cp = (unsigned char*)(img_row + 4*y);
+                unsigned char *fcp = (unsigned char*)&true_fg_color;
+                unsigned char *bcp = (unsigned char*)&true_bg_color;
+                *(cp + 0) = *(fcp + 0) * intensity;
+                *(cp + 1) = *(fcp + 1) * intensity;
+                *(cp + 2) = *(fcp + 2) * intensity;
+                *(cp + 3) = *(fcp + 3) * intensity;
+                *(cp + 0) += *(bcp + 0) * (1.0 - intensity);
+                *(cp + 1) += *(bcp + 1) * (1.0 - intensity);
+                *(cp + 2) += *(bcp + 2) * (1.0 - intensity);
+                *(cp + 3) += *(bcp + 3) * (1.0 - intensity);
+            }
+            current_column -= 4 * total_width;
+        }
+        current_width += ds_char->width;
+    }
+
+    free(font);
+
+read_error:
+    return EXIT_FAILURE;
 }

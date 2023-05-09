@@ -7,6 +7,7 @@ build:
 
 buildit: build
 	cd build ; cmake -DCMAKE_BUILD_TYPE=Debug ../ ; make
+	#cd build ; cmake -DCMAKE_BUILD_TYPE=MinSizeRel ../ ; make
 
 install:
 	cd build ; cmake -DCMAKE_INSTALL_PREFIX=`pwd`/../release/linux .

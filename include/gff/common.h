@@ -108,8 +108,12 @@ typedef struct gff_chunk_entry_s {
 } gff_chunk_entry_t;
 
 typedef struct gff_color_s {
-    unsigned short r, g, b;
+    uint8_t r, g, b;
 } gff_color_t;
+
+typedef struct gff_raw_palette_s {
+    gff_color_t color[PALETTE_SIZE];
+} gff_raw_palette_t;
 
 typedef struct gff_palette_s {
     gff_color_t color[PALETTE_SIZE];

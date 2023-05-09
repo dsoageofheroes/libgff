@@ -55,6 +55,7 @@ void test_resource(void) {
     TEST_ASSERT_EQUAL(6, info.w);
     TEST_ASSERT_EQUAL(8, info.h);
     unsigned char *data = gff_get_frame_rgba_palette(f, GFF_ICON, ids[0], 0, f->pals->palettes + 0);
+    printf("ID: %d, data: %p\n", ids[0], data);
     TEST_ASSERT_NOT_NULL(data);
     free(data);
     data = gff_get_frame_rgba_palette(f, GFF_ICON, ids[0], 5, f->pals->palettes + 0);
@@ -106,10 +107,22 @@ void test_palette(void) {
     TS(gff_free(f));
 }
 
+void test_neg(void) {
+    gff_chunk_header_t chunk;
+    gff_file_t *f = gff_allocate();
+    TEST_ASSERT_NOT_NULL(f);
+    TS(gff_open(f, "ds1/RESOURCE.GFF"));
+    
+    gff_find_chunk_header(f, &chunk, GFF_ICON, 0);
+
+    TS(gff_free(f));
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_load);
     RUN_TEST(test_resource);
     RUN_TEST(test_gpldata);
+    RUN_TEST(test_neg);
     return UNITY_END();
 }

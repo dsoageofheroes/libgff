@@ -3,6 +3,7 @@
 #include "unity.h"
 #include "gff/gff.h"
 #include "gff/gfftypes.h"
+#include "gff/image.h"
 #include "gff/manager.h"
 #include "gff/region.h"
 
@@ -66,11 +67,30 @@ void test_load_ds1_region(void) {
     TS(gff_manager_free(man));
 }
 
+void test_images(void) {
+    gff_manager_t *man = gff_manager_create();
+    //gff_region_t *reg = NULL;
+
+    TEST_ASSERT_NOT_NULL(man);
+
+    TS(gff_manager_load_ds1(man, "ds1/"));
+
+    gff_frame_info_t info;
+    TS(gff_frame_info(man->ds1.resource, GFF_ICON, 100, 0, &info));
+    printf("%d x %d\n", info.w, info.h);
+    unsigned char *data = gff_get_frame_rgba_palette(man->ds1.resource, GFF_ICON, 100, 0, man->ds1.resource->pals->palettes + 0);
+    printf("data = %p\n", data);
+    free(data);
+    TS(gff_manager_free(man));
+}
+
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_smoke);
     RUN_TEST(test_load_ds1);
     RUN_TEST(test_load_ds1_region_objects);
     RUN_TEST(test_load_ds1_region);
+    RUN_TEST(test_images);
     return UNITY_END();
 }

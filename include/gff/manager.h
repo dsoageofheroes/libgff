@@ -30,6 +30,7 @@ extern int            gff_manager_load_ds1(gff_manager_t *man, const char *path)
 extern int            gff_manager_load_region_objects(gff_manager_t *man, gff_region_t *reg);
 extern int            gff_manager_create_ds1_region_object(gff_manager_t *man, int region, int etab_id, gff_region_object_t *obj);
 extern int            gff_manager_read_window(gff_ds1_manager_t *man, int res_id, gff_window_t **win);
+extern int            gff_manager_font_load(gff_manager_t *man, uint8_t **data, int32_t *w, int32_t *h, const uint32_t fg_color, const uint32_t bg_color);
 /*
 extern gff_status_t gff_gpl_manager_init();
 extern gff_status_t gff_gpl_manager_cleanup();

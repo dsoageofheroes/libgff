@@ -33,7 +33,7 @@ static int load_frame_from_gff(const int res_id, gff_frame_t *frame) {
 }
 */
 
-extern int gff_read_font(gff_file_t *f, int res_id, ds_font_t **font) {
+extern int gff_read_font(gff_file_t *f, int res_id, gff_font_t **font) {
     return 
         gff_read_raw_allocate(f, GFF_FONT, res_id, (char**)font)
         ? EXIT_SUCCESS
@@ -64,6 +64,13 @@ extern int gff_read_button(gff_file_t *f, int res_id, gff_button_t *button) {
 extern int gff_read_frame(gff_file_t *f, int res_id, gff_frame_t *frame) {
     return 
         gff_read_raw(f, GFF_APFM, res_id, (char*)frame, sizeof(gff_frame_t)) >= sizeof(gff_frame_t)
+        ? EXIT_SUCCESS
+        : EXIT_FAILURE;
+}
+
+extern int gff_read_raw_pal(gff_file_t *f, int res_id, gff_raw_palette_t *pal) {
+    return 
+        gff_read_raw(f, GFF_PAL, res_id, (char*)pal, sizeof(gff_raw_palette_t)) >= sizeof(gff_raw_palette_t)
         ? EXIT_SUCCESS
         : EXIT_FAILURE;
 }
