@@ -62,7 +62,7 @@ static int detect_and_load_core_ds1(gff_manager_t *man, const char *full_path, c
         goto load_file;
     }
 
-    if (!strcmp(name, "GPL.GFF")) {
+    if (!strcmp(name, "GPLDATA.GFF")) {
         debug("loading gpl from %s\n", full_path);
         dest = &(man->ds1.gpl);
         goto load_file;
@@ -270,3 +270,26 @@ extern int gff_manager_free(gff_manager_t *man) {
 
     return EXIT_SUCCESS;
 }
+
+extern gff_game_type_t gff_manager_game_type(gff_manager_t *man) {
+    /*
+    if (open_files[RESOURCE_GFF_INDEX].filename && open_files[RESFLOP_GFF_INDEX].filename) {
+        return DARKSUN_2;
+    }
+
+    if (open_files[RESOURCE_GFF_INDEX].filename && !open_files[RESFLOP_GFF_INDEX].filename) {
+        return DARKSUN_1;
+    }
+
+    if (!open_files[RESOURCE_GFF_INDEX].filename && open_files[RESFLOP_GFF_INDEX].filename) {
+        return DARKSUN_ONLINE;
+    }
+    */
+
+    if (man->ds1.resource) {
+        return DARKSUN_1;
+    }
+
+    return DARKSUN_UNKNOWN;
+}
+

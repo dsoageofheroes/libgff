@@ -62,6 +62,5 @@ extern void               gff_close (int gff_file);
 extern void               gff_load_directory(const char *path);
 extern int                gff_get_master();
 extern const char**       gff_list(size_t *len);
-extern enum game_type_e   gff_get_game_type();
 
 #endif

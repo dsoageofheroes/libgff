@@ -162,24 +162,6 @@ void gff_load_directory(const char *path) {
     }
 }
 
-/*
-const enum game_type_e gff_get_game_type() {
-    if (open_files[RESOURCE_GFF_INDEX].filename && open_files[RESFLOP_GFF_INDEX].filename) {
-        return DARKSUN_2;
-    }
-
-    if (open_files[RESOURCE_GFF_INDEX].filename && !open_files[RESFLOP_GFF_INDEX].filename) {
-        return DARKSUN_1;
-    }
-
-    if (!open_files[RESOURCE_GFF_INDEX].filename && open_files[RESFLOP_GFF_INDEX].filename) {
-        return DARKSUN_ONLINE;
-    }
-
-    return DARKSUN_UNKNOWN;
-}
-*/
-
 const char** gff_list(size_t *len) {
     *len = 0;
     const char **ret = NULL;
