@@ -74,6 +74,12 @@ static int detect_and_load_core_ds1(gff_manager_t *man, const char *full_path, c
         goto load_file;
     }
 
+    if (!strcmp(name, "CHARSAVE.GFF")) {
+        debug("loading charsave from %s\n", full_path);
+        dest = &(man->ds1.charsave);
+        goto load_file;
+    }
+
     goto dne;
 
 load_file:

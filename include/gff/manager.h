@@ -13,7 +13,7 @@
 #define DS1_MAX_REGIONS (50)
 
 typedef struct gff_ds1_manager_s {
-    gff_file_t *resource, *segobjex, *gpl, *cine;
+    gff_file_t *resource, *segobjex, *gpl, *cine, *charsave;
     gff_file_t *regions[DS1_MAX_REGIONS];
     gff_file_t *wild_region;
 } gff_ds1_manager_t;
