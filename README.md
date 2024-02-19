@@ -4,4 +4,6 @@ libgff is designed to read and write from GFF file from old SSI games. Currently
 
 ## Tasks
 
+BLAH!
+
 [ ] Finish writing this Readme.md!
