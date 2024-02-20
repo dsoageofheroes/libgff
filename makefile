@@ -14,7 +14,7 @@ install:
 	cd build ; make install
 
 clean:
-	rm -rf build
+	rm -rf build bin obj
 
 test: buildit
 	cd build ; env CTEST_OUTPUT_ON_FAILURE=1 make test
