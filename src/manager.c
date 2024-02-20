@@ -95,9 +95,9 @@ load_file:
     file = NULL;
     return EXIT_SUCCESS;
 
-file_load_error:
-    gff_free(file);
 file_open_error:
+    gff_free(file);
+file_load_error:
 dne:
     return EXIT_FAILURE;
 }
@@ -265,6 +265,11 @@ extern int gff_manager_free(gff_manager_t *man) {
     if (man->ds1.segobjex) {
         gff_free(man->ds1.segobjex);
         man->ds1.segobjex = NULL;
+    }
+
+    if (man->ds1.charsave) {
+        gff_free(man->ds1.charsave);
+        man->ds1.charsave = NULL;
     }
 
     if (man->ds1.gpl) {
