@@ -10,6 +10,18 @@ typedef struct gff_resource_header_s {
     uint32_t len;
     uint32_t id;
 } gff_resource_header_t;
+typedef struct gff_accl_entry_s {
+
+    uint8_t  flags;
+    uint16_t event;
+    uint16_t user_id;
+} __attribute__ ((__packed__)) gff_accl_entry_t;
+
+typedef struct gff_accl_s {
+    gff_resource_header_t rh;
+    uint16_t              count;
+    gff_accl_entry_t      entries[];
+} __attribute__ ((__packed__)) gff_accl_t;
 
 typedef struct gff_rect_s {
     int16_t xmin, ymin;

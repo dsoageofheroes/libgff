@@ -33,26 +33,15 @@ static void print_table_of_contents(gff_file_t *gff) {
 
     for (int i = 0; i < gff->num_types; i++) {
         gff_chunk_entry_t *entry = gff->chunks[i];
-        printf("Entry %2d: '%c%c%c%c'\n", i, 
+        printf("Entry %2d: '%c%c%c%c' %s\n", i, 
                 entry->chunk_type,
                 entry->chunk_type >> 8,
                 entry->chunk_type >> 16,
-                entry->chunk_type >> 24
+                entry->chunk_type >> 24,
+                gff_type_to_str(entry->chunk_type)
               );
     }
 }
-
-typedef struct gff_accl_entry_s {
-    uint8_t  flags;
-    uint16_t event;
-    uint16_t user_id;
-} gff_accl_entry_t;
-
-typedef struct gff_accl_s {
-    gff_resource_header_t rh;
-    uint16_t              count;
-    gff_accl_entry_t      entries[];
-} gff_accl_t;
 
 /*
 static int print_accl(gff_file_t *gff, const int res_id) {

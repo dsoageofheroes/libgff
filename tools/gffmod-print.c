@@ -244,6 +244,31 @@ static void print_bvoc(gff_file_t *gff, unsigned int id) {
     free(data);
 }
 
+static void print_accl(gff_file_t *gff, unsigned int id) {
+    gff_chunk_header_t chunk;
+    uint8_t *data = NULL;
+    gff_accl_t *accl;
+
+    if (gff_find_chunk_header(gff, &chunk, GFF_ACCL, id)) {
+        printf("unable to read ACCL #%d\n", id);
+        return;
+    }
+    printf("ACCL #%d: length is %d\n ", id, chunk.length);
+
+    data = malloc(chunk.length);
+    if (gff_read_chunk(gff, &chunk, data, chunk.length) != chunk.length) {
+        printf("Can't read ACCL #%d\n", id);
+        return;
+    }
+
+    accl = (gff_accl_t*)data;
+    for (int i = 0; i < accl->count; i++) {
+        printf("%d: flags: 0x%x event: %d user_id: %d\n", i, accl->entries[i].flags, accl->entries[i].event, accl->entries[i].user_id);
+    }
+
+    free(data);
+}
+
 static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
     uint32_t len;
     unsigned int *ids;
@@ -265,6 +290,7 @@ static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
         case GFF_PSEQ: print_func = print_pseq; break;
         case GFF_LSEQ: print_func = print_lseq; break;
         case GFF_BVOC: print_func = print_bvoc; break;
+        case GFF_ACCL: print_func = print_accl; break;
         default:
             fprintf(stderr, "printer not written for '%c%c%c%c'\n",
                 entry->chunk_type,
@@ -320,7 +346,6 @@ extern void gffmod_print_entry(gff_file_t *gff, const char *name) {
         fprintf(stderr, "Entry '%d' out of range (0 - %d).\n", index, gff->num_types - 1);
         exit(1);
     }
-
 
     print_gff_entry(gff, gff->chunks[index]);
 }
