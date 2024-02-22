@@ -223,6 +223,27 @@ static void print_lseq(gff_file_t *gff, unsigned int id) {
     printf("Use `-x <dir>` to extract all xmis to a directory.");
 }
 
+static void print_bvoc(gff_file_t *gff, unsigned int id) {
+    gff_chunk_header_t chunk;
+    uint8_t *data = NULL;
+
+    if (gff_find_chunk_header(gff, &chunk, GFF_BVOC, id)) {
+        printf("unable to read BVOC #%d\n", id);
+        return;
+    }
+    printf("BVOC #%d: length is %d, ", id, chunk.length);
+
+    data = malloc(chunk.length);
+    if (gff_read_chunk(gff, &chunk, data, chunk.length) != chunk.length) {
+        printf("Can't read BVOC #%d\n", id);
+        return;
+    }
+    FILE *f = fopen("test.bvoc", "w+");
+    fwrite(data, 1, chunk.length, f);
+    fclose(f);
+    free(data);
+}
+
 static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
     uint32_t len;
     unsigned int *ids;
@@ -243,6 +264,7 @@ static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
         case GFF_GSEQ: print_func = print_gseq; break;
         case GFF_PSEQ: print_func = print_pseq; break;
         case GFF_LSEQ: print_func = print_lseq; break;
+        case GFF_BVOC: print_func = print_bvoc; break;
         default:
             fprintf(stderr, "printer not written for '%c%c%c%c'\n",
                 entry->chunk_type,

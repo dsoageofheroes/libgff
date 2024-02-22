@@ -24,7 +24,7 @@ static void print_help(char *name) {
     printf("       -w <entry num>      : print the window information\n");
     printf("       -d <dir>            : dump the raw data of each entry of the GFF into the directory <dir>\n");
     printf("       -I <dir>            : dump all possible images (graphics) into <dir>\n");
-    printf("       -x <dir>            : dump all possible xmi (midi music with extensions) into <dir>\n");
+    printf("       -x <dir>            : dump all possible bvoc AND xmi (midi music with extensions) into <dir>\n");
     printf("       -v                  : verbose output\n");
 }
 
@@ -196,12 +196,51 @@ void extract_all_images(gff_file_t *f, const char *base_path) {
     for (int i = 0; i < gff_get_number_of_types(f); i++) {
         int type;
         gff_get_resource_length(f, type = gff_get_type_id(f, i), &len);
-        printf("type: %d, len: %d\n", type, len);
+        //printf("type: %d, len: %d\n", type, len);
         gff_get_resource_ids(f, type, res_ids, &pos);
         for (int j = 0; j < len; j++) {
             gffmod_write_image(base_path, f, type, res_ids[j]);
         }
     }   
+}
+
+static void extract_all_bvocs(gff_file_t *gff, const char *base_path) {
+    uint32_t res_ids[1024];
+    char bvoc_path[256];
+    gff_chunk_header_t chunk;
+    uint32_t len, pos;
+    uint8_t *data = NULL;
+
+    printf("Start write of all bvocs.\n");
+
+    for (int i = 0; i < gff_get_number_of_types(gff); i++) {
+        int type;
+        gff_get_resource_length(gff, type = gff_get_type_id(gff, i), &len);
+        //printf("type: %d, len: %d\n", type, len);
+        gff_get_resource_ids(gff, type, res_ids, &pos);
+        if (type != GFF_BVOC) { continue; }
+        for (int j = 0; j < len; j++) {
+        //snprintf(filename, 1<<10, "%s/%d-%s-res%d-frame%d.bmp", base_path, gff->id, type, res_id, cframe);
+            snprintf(bvoc_path, 255, "%s%s-BVOC-%d.bvoc", base_path, gff->filename, res_ids[j]);
+            if (gff_find_chunk_header(gff, &chunk, GFF_BVOC, res_ids[j])) {
+                printf("unable to read BVOC #%d\n", res_ids[j]);
+                return;
+            }
+            data = malloc(chunk.length);
+            if (gff_read_chunk(gff, &chunk, data, chunk.length) != chunk.length) {
+                printf("Can't read BVOC #%d\n", res_ids[j]);
+                return;
+            }
+            printf("BVOC: %s\n", bvoc_path);
+            FILE *f = fopen(bvoc_path, "w+");
+            fwrite(data, 1, chunk.length, f);
+            fclose(f);
+            free(data);
+            data = NULL;
+        }
+    }
+
+    printf("End write of all bvocs.\n");
 }
 
 void extract_all_xmis(gff_file_t *f, const char *base_path) {
@@ -221,7 +260,7 @@ void extract_all_xmis(gff_file_t *f, const char *base_path) {
     for (int i = 0; i < gff_get_number_of_types(f); i++) {
         int type;
         gff_get_resource_length(f, type = gff_get_type_id(f, i), &len);
-        printf("type: %d, len: %d\n", type, len);
+        //printf("type: %d, len: %d\n", type, len);
         gff_get_resource_ids(f, type, res_ids, &pos);
         for (int j = 0; j < len; j++) {
             switch (type) {
@@ -268,6 +307,7 @@ static void do_mods() {
 
     if (xmi_dir) {
         extract_all_xmis(gff, xmi_dir);
+        extract_all_bvocs(gff, xmi_dir);
     }
 
     gff_free(gff);
