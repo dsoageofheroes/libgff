@@ -109,6 +109,71 @@ extern int gffmod_write_image(const char *base_path, gff_file_t *gff, const int 
     return EXIT_SUCCESS;
 }
 
+extern unsigned char* gff_xmi_to_midi_type(const unsigned char *xmi_data, const unsigned int xmi_len, unsigned int *midi_len,
+    const int type);
+
+extern int gffmod_write_xmis(const char *base_path, gff_file_t *gff, const int type_id, const int res_id) {
+    char filename[1<<10];
+    char *data = NULL;
+    unsigned char *midi = NULL;
+    unsigned int midi_len;
+    gff_chunk_header_t chunk;
+
+    if (type_id != GFF_CSEQ && type_id != GFF_GSEQ && type_id != GFF_PSEQ && type_id == GFF_LSEQ) { return EXIT_FAILURE; }
+
+    if (gff_find_chunk_header(gff, &chunk, type_id, res_id)) {
+        printf("Unable to read chunk header for SEQ\n");
+        return EXIT_FAILURE;
+    }
+
+    data = malloc(chunk.length);
+    if (gff_read_chunk(gff, &chunk, data, chunk.length) != chunk.length) {
+        printf("Unable to read chunk for SEQ\n");
+        return EXIT_FAILURE;
+    }
+
+    snprintf(filename, 1<<10, "%s%03d.xmi", base_path, res_id);
+    FILE *file = fopen(filename, "wb+");
+    fwrite(data, 1, chunk.length, file);
+    fclose(file);
+
+    if ((midi = gff_xmi_to_midi_type((unsigned char*)data, chunk.length, &midi_len, XMIDI_CONVERT_NOCONVERSION))) {
+        snprintf(filename, 1<<10, "%s%03d-no-conversion.midi", base_path, res_id);
+        file = fopen(filename, "wb+");
+        fwrite(midi, 1, midi_len, file);
+        fclose(file);
+        free(midi);
+    }
+
+    if ((midi = gff_xmi_to_midi_type((unsigned char*)data, chunk.length, &midi_len, XMIDI_CONVERT_MT32_TO_GM))) {
+        snprintf(filename, 1<<10, "%s%03d-mt32-to-gm.midi", base_path, res_id);
+        file = fopen(filename, "wb+");
+        fwrite(midi, 1, midi_len, file);
+        fclose(file);
+        free(midi);
+    }
+
+    if ((midi = gff_xmi_to_midi_type((unsigned char*)data, chunk.length, &midi_len, XMIDI_CONVERT_MT32_TO_GS))) {
+        snprintf(filename, 1<<10, "%s%03d-mt32-to-gs.midi", base_path, res_id);
+        file = fopen(filename, "wb+");
+        fwrite(midi, 1, midi_len, file);
+        fclose(file);
+        free(midi);
+    }
+
+    if ((midi = gff_xmi_to_midi_type((unsigned char*)data, chunk.length, &midi_len, XMIDI_CONVERT_GS127_TO_GS))) {
+        snprintf(filename, 1<<10, "%s%03d-gs127-to-gs.midi", base_path, res_id);
+        file = fopen(filename, "wb+");
+        fwrite(midi, 1, midi_len, file);
+        fclose(file);
+        free(midi);
+    }
+
+    free(data);
+
+    return EXIT_SUCCESS;
+}
+
 /*
 static void write_rdff(int idx, const char *base_path) {
     uint32_t res_ids[RES_MAX];

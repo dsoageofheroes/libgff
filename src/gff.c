@@ -597,10 +597,10 @@ extern int gff_write_raw_bytes(gff_file_t *f, int type_id, int res_id, const cha
  */
 extern int gff_get_resource_length(gff_file_t *f, int type_id, uint32_t *len) {
     gff_seg_header_t  *seg_header;
-    *len = 0;
 
     if (!f || !len || !f->file) { return EXIT_FAILURE; }
 
+    *len = 0;
     //for (int i = 0; i < open_files[idx].num_types; i++) {
     for (int i = 0; i < f->num_types; i++) {
         if ((f->chunks[i]->chunk_type & GFFMAXCHUNKMASK) != type_id) { continue; }
@@ -730,6 +730,20 @@ read_error:
     return EXIT_FAILURE;
 }
 
+extern int gff_read_merr(gff_file_t *f, int res_id, char *text, size_t len) {
+    int amt_read = gff_read_raw(f, GFF_MERR, res_id, text, len);
+
+    if (amt_read == 0) {
+        goto read_error;
+    }
+
+    text[amt_read - 2] = '\0';
+
+    return EXIT_SUCCESS;
+read_error:
+    return EXIT_FAILURE;
+}
+
 extern int gff_read_rdat(gff_file_t *f, int res_id, char *text, size_t len) {
     int amt_read = gff_read_raw(f, GFF_RDAT, res_id, text, len - 1);
 
@@ -742,6 +756,13 @@ extern int gff_read_rdat(gff_file_t *f, int res_id, char *text, size_t len) {
     return EXIT_SUCCESS;
 read_error:
     return EXIT_FAILURE;
+}
+
+extern int gff_read_monster_list(gff_file_t *f, int res_id, gff_monster_list_t **monr) {
+    return
+        gff_read_raw_allocate(f, GFF_MONR, res_id, (char**)monr)
+        ? EXIT_SUCCESS
+        : EXIT_FAILURE;
 }
 
 /*

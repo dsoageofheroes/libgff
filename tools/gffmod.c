@@ -10,17 +10,21 @@ static char *entry_name = NULL;
 static char print_toc = 0;
 static char *dump = NULL;
 static char *img_dir = NULL;
+static char *xmi_dir = NULL;
 static uint8_t verbose = 0;
 
 extern int gffmod_write_image(const char *base_path, gff_file_t *gff, const int type_id, const int res_id);
+extern int gffmod_write_xmis(const char *base_path, gff_file_t *gff, const int type_id, const int res_id);
+extern void gffmod_print_entry(gff_file_t *gff, const char *name);
 
 static void print_help(char *name) {
     printf("usage: %s <options>\n", name);
     printf("       -i <input gff file> : the input file\n");
     printf("       -t <num: optional>  : print the table of contents of gff or entry\n");
     printf("       -w <entry num>      : print the window information\n");
-    printf("       -d <dir>            : dump the raw data ofeach entry of the GFF into the directory <dir>\n");
+    printf("       -d <dir>            : dump the raw data of each entry of the GFF into the directory <dir>\n");
     printf("       -I <dir>            : dump all possible images (graphics) into <dir>\n");
+    printf("       -x <dir>            : dump all possible xmi (midi music with extensions) into <dir>\n");
     printf("       -v                  : verbose output\n");
 }
 
@@ -124,169 +128,6 @@ no_header:
 }
 */
 
-static void print_button(gff_file_t *gff, unsigned int id) {
-    gff_button_t button;
-
-    gff_read_button(gff, id, &button);
-    printf("button: %d size (%d, %d) icon: %d", id, 
-            button.frame.width, button.frame.height,
-            button.icon_id
-            );
-}
-
-static void print_window(gff_file_t *gff, unsigned int id) {
-    gff_window_t *win = NULL;
-    uint8_t      *buf = NULL;
-
-    gff_read_window(gff, id, &win);
-    printf("window: %d, pos (%d, %d) size (%d, %d) with %d items.\n", id, 
-            win->x, win->y,
-            win->frame.width, win->frame.height,
-            win->itemCount
-            );
-
-    printf("background bmp: %d boder bmp:%d\n", win->frame.background_bmp, win->frame.border_bmp);
-    /*
-    printf("%d, %d, %d, %d\n",
-            win->region.bounds.xmin,
-            win->region.bounds.xmax,
-            win->region.bounds.ymin,
-            win->region.bounds.ymax);
-    for (int i = 0; i < 16; i++) {
-    printf("%d, %d, %d, %d\n",
-            win->region.regions[i].xmin,
-            win->region.regions[i].xmax,
-            win->region.regions[i].ymin,
-            win->region.regions[i].ymax);
-    }
-    */
-    buf = (uint8_t*)win;
-    for (int i = 0; i < win->itemCount; i++) {
-        gff_gui_item_t *item = (gff_gui_item_t*)(buf + sizeof(gff_window_t) + 12 + i *(sizeof(gff_gui_item_t)));
-        switch (item->type) {
-            case GFF_ACCL:
-                printf("%d: ACCL %d\n", i, item->id);
-                //print_accl(gff, item->id);
-                break;
-            case GFF_APFM:
-                printf("%d: APFM %d\n", i, item->id);
-                //print_frame(gff, item->id);
-                break;
-            case GFF_BUTN:
-                printf("%d: ", i);
-                print_button(gff, item->id);
-                printf("\n");
-                break;
-            case GFF_EBOX:
-                printf("%d: EBOX %d\n", i, item->id);
-                break;
-            default:
-                printf("UNKNOWN TYPE IN WINDOW: %d\n", item->type);
-        }
-    }
-}
-
-static void print_gffi(gff_file_t *gff, unsigned int id) {
-    gff_chunk_entry_t *gffi = gff->chunks[id];
-
-    printf("GFFI[%d]:\n", id);
-    if (gffi->chunk_count & GFFSEGFLAGMASK) {
-        printf("    seg:    num_entries: %u  seg_count: %u location: %u\n", 
-                gffi->segs.header.num_entries,
-                gffi->segs.header.seg_count,
-                gffi->segs.header.seg_loc_id
-              );
-        for (int i = 0; i < gffi->segs.header.num_entries; i++) {
-            printf("        %d: first_id:%d num_chunks: %d\n",
-                    i,
-                    gffi->segs.segs[i].first_id,
-                    gffi->segs.segs[i].num_chunks);
-        }
-    } else {
-        printf("    chunks: total: %lu\n", gffi->chunk_count & GFFMAXCHUNKMASK);
-        uint32_t max = gffi->chunk_count & GFFMAXCHUNKMASK;
-        for (int i = 0; i < max; i++) {
-            printf("        %d: id: %u loc: %u length: %u\n", i,
-                    gffi->chunks[i].id,
-                    gffi->chunks[i].location,
-                    gffi->chunks[i].length);
-        }
-    }
-}
-
-static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
-    uint32_t len;
-    unsigned int *ids;
-    gff_chunk_header_t chunk;
-    void (*print_func)(gff_file_t *gff, unsigned int id);
-
-    switch (entry->chunk_type) {
-        case GFF_WIND:
-            print_func = print_window;
-            break;
-        case GFF_BUTN:
-            print_func = print_button;
-            break;
-        case GFF_GFFI: print_func = print_gffi; break;
-        default:
-            fprintf(stderr, "printer not written for '%c%c%c%c'\n",
-                entry->chunk_type,
-                entry->chunk_type >> 8,
-                entry->chunk_type >> 16,
-                entry->chunk_type >> 24
-                );
-            exit(1);
-            break;
-    }
-
-    ids = gff_get_id_list(gff, entry->chunk_type, &len);
-
-    for (int i = 0; i < len; i++) {
-
-        if (gff_find_chunk_header(gff, &chunk, entry->chunk_type, ids[i]) ) {
-            fprintf(stderr, "Unable to read chunk %d: id = %d\n", i, ids[i]);
-            exit(1);
-        }
-
-        print_func(gff, ids[i]);
-        printf("\n");
-    }
-
-    free(ids);
-}
-
-static void print_entry(gff_file_t *gff, const char *name) {
-    int32_t index = -1;
-
-    // See if it is a number.
-    if (name[0] == '0') {
-        index = 0;
-    } else {
-        index = atoi(name);
-        if (index == 0) { index = -1; }
-    }
-
-    // If not a number convert from type to index
-    for (int i = 0; index == -1 && i < gff->num_types; i++) {
-        gff_chunk_entry_t *entry = gff->chunks[i];
-        if (!strncmp((char*)&entry->chunk_type, name, 4)) {
-            index = i;
-        }
-    }
-
-    if (index <= -1) {
-        fprintf(stderr, "Unable to find entry.\n");
-        exit(1);
-    }
-
-    if (index >= gff->num_types) {
-        fprintf(stderr, "Entry '%d' out of range (0 - %d).\n", index, gff->num_types - 1);
-        exit(1);
-    }
-
-
-    print_gff_entry(gff, gff->chunks[index]);
-}
 
 static void dump_entries(gff_file_t *gff, const char *path) {
     unsigned int *ids = NULL;
@@ -317,7 +158,7 @@ static void dump_entries(gff_file_t *gff, const char *path) {
 
 static void parse_args(int argc, char *argv[]) {
     char c;
-    while ((c = getopt (argc, argv, "i:ht::p:d:I:v")) != -1) {
+    while ((c = getopt (argc, argv, "i:ht::p:d:I:vx:")) != -1) {
         switch(c) {
             case 'i':
                 input_file = optarg;
@@ -334,6 +175,9 @@ static void parse_args(int argc, char *argv[]) {
                 break;
             case 'I':
                 img_dir = optarg;
+                break;
+            case 'x':
+                xmi_dir = optarg;
                 break;
             case 'd':
                 dump = optarg;
@@ -360,6 +204,37 @@ void extract_all_images(gff_file_t *f, const char *base_path) {
     }   
 }
 
+void extract_all_xmis(gff_file_t *f, const char *base_path) {
+    uint32_t res_ids[1024];
+    uint32_t len, pos;
+    char pseq[128];
+    char cseq[128];
+    char gseq[128];
+    char lseq[128];
+
+    printf("Start write of all xmis/midis.\n");
+
+    snprintf(pseq, 127, "%s/pseq", base_path);
+    snprintf(cseq, 127, "%s/cseq", base_path);
+    snprintf(gseq, 127, "%s/gseq", base_path);
+    snprintf(lseq, 127, "%s/lseq", base_path);
+    for (int i = 0; i < gff_get_number_of_types(f); i++) {
+        int type;
+        gff_get_resource_length(f, type = gff_get_type_id(f, i), &len);
+        printf("type: %d, len: %d\n", type, len);
+        gff_get_resource_ids(f, type, res_ids, &pos);
+        for (int j = 0; j < len; j++) {
+            switch (type) {
+                case GFF_CSEQ: gffmod_write_xmis(cseq, f, type, res_ids[j]); break;
+                case GFF_GSEQ: gffmod_write_xmis(gseq, f, type, res_ids[j]); break;
+                case GFF_PSEQ: gffmod_write_xmis(pseq, f, type, res_ids[j]); break;
+                case GFF_LSEQ: gffmod_write_xmis(lseq, f, type, res_ids[j]); break;
+            }
+        }
+    }
+    printf("End write of all xmis/midis.\n");
+}
+
 static void do_mods() {
     gff_file_t *gff = gff_allocate();
 
@@ -377,7 +252,7 @@ static void do_mods() {
 
     if (print_toc) {
         if (entry_name) {
-            print_entry(gff, entry_name);
+            gffmod_print_entry(gff, entry_name);
         } else {
             print_table_of_contents(gff);
         }
@@ -389,6 +264,10 @@ static void do_mods() {
 
     if (img_dir) {
         extract_all_images(gff, img_dir);
+    }
+
+    if (xmi_dir) {
+        extract_all_xmis(gff, xmi_dir);
     }
 
     gff_free(gff);

@@ -6,20 +6,15 @@
 
 #include "common.h"
 
-// Need to find location for these:
-#define MAX_MONSTERS_PER_REGION (10)
-
-typedef struct _gff_monster_entry_t {
+typedef struct gff_monster_entry_s {
     int16_t id;
     int16_t level;
 } gff_monster_entry_t;
 
-typedef struct _gff_monster_region_t {
+typedef struct gff_monster_region_s {
     int16_t region;
-    gff_monster_entry_t monsters[MAX_MONSTERS_PER_REGION];
-} gff_monster_region_t;
-
-extern gff_monster_entry_t* gff_load_monster(int region_id, int monster_id);
+    gff_monster_entry_t monsters[];
+} __attribute__ ((__packed__)) gff_monster_list_t;
 
 extern gff_file_t open_files[NUM_FILES];
 
@@ -42,6 +37,8 @@ extern size_t             gff_read_raw_allocate(gff_file_t *f, int gff_type, int
 extern int                gff_read_text(gff_file_t *f, int res_id, char *text, size_t len);
 extern int                gff_read_rdat(gff_file_t *f, int res_id, char *text, size_t len);
 extern int                gff_read_spin(gff_file_t *f, int res_id, char *text, size_t len);
+extern int                gff_read_merr(gff_file_t *f, int res_id, char *text, size_t len);
+extern int                gff_read_monster_list(gff_file_t *f, int res_id, gff_monster_list_t **monr);
 
 /* Not in a test */
 extern int                gff_write_raw_bytes(gff_file_t *f, int type_id, int res_id, const char *path); // DEPRECATED?

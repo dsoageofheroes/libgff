@@ -1,12 +1,18 @@
-# THIS PROJECT HAS MOVED
-
-Due to github's new security policy the new repository:
-https://bitbucket.org/PauloftheWest/libgff/
-
 # libgff
 
-libgff is designed to read and write from GFF file from old SSI games. Currently it works in conjunction with soloscuro for loading DarkSun GFFs.
+`libgff` is designed to read and write from GFF file from old SSI games.
+Some of the work is reversed engineered from the .gff others parts are scoured from resources on the internet. Sorry to all those I wasn't able to give a citation.
 
-## Tasks
+`libgff` will provide two tools: 
+ * `libgff`: a C library for reading (and eventually writing) gff files. This include text, spells, images, maps information, video, and hooks for interfacing with GPL.
+ * `gffmod`: a CLI tool for reading (and eventually writing) gff files.
 
-[ ] Finish writing this Readme.md!
+
+# Programming Guide
+
+To be written
+
+# gffmod
+
+To be written
+
