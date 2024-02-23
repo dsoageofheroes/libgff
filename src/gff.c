@@ -716,6 +716,30 @@ read_error:
     return EXIT_FAILURE;
 }
 
+extern int gff_read_names(gff_file_t *f, int res_id, char *names, size_t len, uint32_t *amt) {
+    //int amt_read = gff_read_raw(f, GFF_NAME, res_id, text, len);
+    gff_chunk_header_t chunk;
+    if (gff_find_chunk_header(f, &chunk, GFF_NAME, 1)) {
+        goto read_error;
+    }
+
+    if (len < chunk.length) {
+        goto capacity_error;
+    }
+
+    if (gff_read_chunk(f, &chunk, names, chunk.length) < chunk.length) {
+        goto read_error;
+    }
+
+    *amt = chunk.length / 25;
+
+    return EXIT_SUCCESS;
+capacity_error:
+read_error:
+    return EXIT_FAILURE;
+}
+
+
 extern int gff_read_spin(gff_file_t *f, int res_id, char *text, size_t len) {
     int amt_read = gff_read_raw(f, GFF_SPIN, res_id, text, len);
 

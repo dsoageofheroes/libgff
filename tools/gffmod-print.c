@@ -1,5 +1,6 @@
 #include <gff/gff.h>
 #include <gff/gfftypes.h>
+#include <gff/image.h>
 #include <gff/gui.h>
 #include <stdlib.h>
 #include <string.h>
@@ -81,6 +82,21 @@ static void print_text(gff_file_t *gff, unsigned int id) {
     }
 
     printf("Text[%d]: '%s'\n", id, text);
+}
+
+static void print_name(gff_file_t *gff, unsigned int id) {
+    char text[16384];
+    uint32_t len;
+
+    if (gff_read_names(gff, id, text, 16384, &len)) {
+        printf("Unable to read NAME @ %d\n", id);
+    }
+
+    printf("Name #%d: count: %d\n", id, len);
+
+    for (int i = 0; i < len; i++) {
+        printf("    %d: '%s'\n", i, text + (25 * i));
+    }
 }
 
 static void print_spin(gff_file_t *gff, unsigned int id) {
@@ -334,15 +350,12 @@ static void print_window(gff_file_t *gff, unsigned int id) {
         switch (item->type) {
             case GFF_ACCL:
                 print_accl(gff, item->id);
-                //print_accl(gff, item->id);
                 break;
             case GFF_APFM:
                 print_frame(gff, item->id);
                 break;
             case GFF_BUTN:
-                //printf("%d: ", i);
                 print_button(gff, item->id);
-                //printf("\n");
                 break;
             case GFF_EBOX:
                 print_ebox(gff, item->id);
@@ -354,6 +367,31 @@ static void print_window(gff_file_t *gff, unsigned int id) {
 
     free(win);
     printf("WINDOW #%d END\n", id);
+}
+
+static void print_icon(gff_file_t *gff, uint32_t id) {
+    gff_frame_info_t info;
+    int fc = gff_get_frame_count(gff, GFF_ICON, id);
+
+
+    printf("ICON #%d:\n", id);
+    printf("    frames: %d\n", fc);
+    for (int i = 0; i < fc; i++) {
+        gff_frame_info(gff, GFF_ICON, id, i, &info);
+        printf("    frame %d: %d x %d\n", i, info.w, info.h);
+    }
+}
+
+static void print_bmp(gff_file_t *gff, uint32_t id) {
+    gff_frame_info_t info;
+    int fc = gff_get_frame_count(gff, GFF_BMP, id);
+
+    printf("BMP #%d:\n", id);
+    printf("    frames: %d\n", fc);
+    for (int i = 0; i < fc; i++) {
+        gff_frame_info(gff, GFF_BMP, id, i, &info);
+        printf("    frame %d: %d x %d\n", i, info.w, info.h);
+    }
 }
 
 static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
@@ -380,6 +418,9 @@ static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
         case GFF_ACCL: print_func = print_accl; break;
         case GFF_EBOX: print_func = print_ebox; break;
         case GFF_APFM: print_func = print_frame; break;
+        case GFF_ICON: print_func = print_icon; break;
+        case GFF_BMP: print_func = print_bmp; break;
+        case GFF_NAME: print_func = print_name; break;
         default:
             fprintf(stderr, "printer not written for '%c%c%c%c'\n",
                 entry->chunk_type,

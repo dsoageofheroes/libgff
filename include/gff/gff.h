@@ -35,6 +35,7 @@ extern size_t             gff_read_chunk_piece(gff_file_t *f, gff_chunk_header_t
 extern int                gff_read_raw(gff_file_t *f, int gff_type, int res_id, char *buf, size_t len);
 extern size_t             gff_read_raw_allocate(gff_file_t *f, int gff_type, int res_id, char **buf);
 extern int                gff_read_text(gff_file_t *f, int res_id, char *text, size_t len);
+extern int                gff_read_names(gff_file_t *f, int res_id, char *names, size_t len, uint32_t *amt);
 extern int                gff_read_rdat(gff_file_t *f, int res_id, char *text, size_t len);
 extern int                gff_read_spin(gff_file_t *f, int res_id, char *text, size_t len);
 extern int                gff_read_merr(gff_file_t *f, int res_id, char *text, size_t len);
