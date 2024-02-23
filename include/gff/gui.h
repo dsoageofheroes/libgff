@@ -56,8 +56,23 @@ typedef struct gff_frame_s {
     uint32_t background_bmp;
     int8_t data1[4]; // This may be two bytes.
     char title[24];
-    //char data0[44];
 } __attribute__ ((__packed__)) gff_frame_t;
+
+typedef struct gff_full_frame_s {
+    gff_resource_header_t rh;
+    gff_frame_t           frame;
+    uint8_t func_ptr[4];
+    int16_t event_filter;
+    uint8_t func_ptr2[4];
+    uint8_t func_ptr3[4];
+    uint8_t func_ptr4[4];
+    uint16_t snap_mode;
+    int16_t snap_x;
+    int16_t snap_y;
+    int16_t snap_width;
+    int16_t snap_height;
+    uint8_t func_ptr5[4];
+} __attribute__ ((__packed__)) gff_full_frame_t;
 
 typedef struct gff_window_s {
     gff_resource_header_t rh;
@@ -137,7 +152,7 @@ extern int gff_read_font(gff_file_t *f, int res_id, gff_font_t **font);
 extern int gff_read_ebox(gff_file_t *f, int res_id, gff_ebox_t *ebox);
 extern int gff_read_window(gff_file_t *f, int res_id, gff_window_t **win);
 extern int gff_read_button(gff_file_t *f, int res_id, gff_button_t *button);
-extern int gff_read_frame(gff_file_t *f, int res_id, gff_frame_t *frame);
+extern int gff_read_frame(gff_file_t *f, int res_id, gff_full_frame_t *frame);
 extern int gff_read_raw_pal(gff_file_t *f, int res_id, gff_raw_palette_t *pal);
 
 #endif
