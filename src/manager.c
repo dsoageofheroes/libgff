@@ -107,6 +107,8 @@ extern int gff_manager_load_ds1(gff_manager_t *man, const char *path) {
     struct dirent *ent;
     char buf[BUF_SIZE];
 
+    if (!man || !path) { return EXIT_FAILURE; }
+
     debug("Loading GFFs from: %s\n", path);
     if ((dir = opendir (path)) != NULL) {
         while ((ent = readdir (dir)) != NULL) {

@@ -1,6 +1,7 @@
 #include <gff/gff.h>
 #include <gff/gfftypes.h>
 #include <gff/gui.h>
+#include <gff/manager.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -11,11 +12,14 @@ static char print_toc = 0;
 static char *dump = NULL;
 static char *img_dir = NULL;
 static char *xmi_dir = NULL;
+static char *ds1_path = NULL;
 static uint8_t verbose = 0;
 
 extern int gffmod_write_image(const char *base_path, gff_file_t *gff, const int type_id, const int res_id);
 extern int gffmod_write_xmis(const char *base_path, gff_file_t *gff, const int type_id, const int res_id);
 extern void gffmod_print_entry(gff_file_t *gff, const char *name);
+
+gff_manager_t *man;
 
 static void print_help(char *name) {
     printf("usage: %s <options>\n", name);
@@ -25,6 +29,7 @@ static void print_help(char *name) {
     printf("       -d <dir>            : dump the raw data of each entry of the GFF into the directory <dir>\n");
     printf("       -I <dir>            : dump all possible images (graphics) into <dir>\n");
     printf("       -x <dir>            : dump all possible bvoc AND xmi (midi music with extensions) into <dir>\n");
+    printf("       -1 <dir>            : load all DarkSun: Shattered Lands from <dir>\n");
     printf("       -v                  : verbose output\n");
 }
 
@@ -147,7 +152,7 @@ static void dump_entries(gff_file_t *gff, const char *path) {
 
 static void parse_args(int argc, char *argv[]) {
     char c;
-    while ((c = getopt (argc, argv, "i:ht::p:d:I:vx:")) != -1) {
+    while ((c = getopt (argc, argv, "i:ht::p:d:I:vx:1:")) != -1) {
         switch(c) {
             case 'i':
                 input_file = optarg;
@@ -173,6 +178,9 @@ static void parse_args(int argc, char *argv[]) {
                 break;
             case 'v':
                 verbose = 1;
+                break;
+            case '1':
+                ds1_path = optarg;
                 break;
         }
     }
@@ -264,6 +272,7 @@ void extract_all_xmis(gff_file_t *f, const char *base_path) {
 }
 
 static void do_mods() {
+    man = gff_manager_create();
     gff_file_t *gff = gff_allocate();
 
     if (!input_file) {
@@ -272,6 +281,8 @@ static void do_mods() {
     }
 
     gff_init(gff);
+
+    gff_manager_load_ds1(man, ds1_path);
 
     if (gff_open(gff, input_file)) {
         fprintf(stderr, "Unable to open '%s'.\n", input_file);
@@ -300,6 +311,7 @@ static void do_mods() {
     }
 
     gff_free(gff);
+    gff_manager_free(man);
 }
 
 int main(int argc, char *argv[]) {

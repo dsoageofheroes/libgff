@@ -2,15 +2,19 @@
 #include <gff/gfftypes.h>
 #include <gff/image.h>
 #include <gff/item.h>
+#include <gff/manager.h>
 #include <gff/region.h>
 #include <gff/gui.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
+extern gff_manager_t *man; // forward from gffmod.c
 static int indent = 0;
 
 #define printfi(...) { printf("%*s", indent, ""); printf(__VA_ARGS__); }
+
+static void print_ojff(gff_file_t *gff, uint32_t res_id);
 
 static void print_gff_frame(gff_frame_t *frame) {
     printf("    flags: %d, ", frame->flags);
@@ -472,7 +476,13 @@ static void print_etab(gff_file_t *gff, uint32_t id) {
                 etab->ypos,
                 etab->zpos);
         printf("    flags: %d\n", etab->flags);
-        printf("    index: %d NEED TO INJECT OJFF or RDFF HERE\n", etab->index);
+        if (man->ds1.segobjex) {
+            indent += 4;
+            print_ojff(man->ds1.segobjex, -1 * etab->index);
+            indent -= 4;
+        } else {
+            printf("    index: %d specify -1 to get more information.\n", etab->index);
+        }
     }
 
     free(etabs);
