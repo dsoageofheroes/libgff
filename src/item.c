@@ -12,7 +12,7 @@
 
 static ds_item1r_t *item1rs = NULL;
 static char *names          = NULL;
-static ssize_t      num_item1rs = 0, num_names = 0;
+static uint32_t     num_item1rs = 0, num_names = 0;
 
 extern int gff_item_read(gff_file_t *f, int id, ds1_item_t *item) {
     gff_rdff_t entry;
@@ -48,7 +48,48 @@ extern int gff_item_load(gff_manager_t *man, ds1_item_t *item, int32_t id) {
     return EXIT_SUCCESS;
 }
 
+extern int gff_read_it1r(gff_file_t *gff, int res_id, ds_item1r_t **item1rs, uint32_t *num_item1rs) {
+    gff_chunk_header_t chunk;
+
+    gff_find_chunk_header(gff, &chunk, GFF_IT1R, 1);
+    if (chunk.length == 0 || (chunk.length % sizeof(ds_item1r_t)) != 0) {
+        printf("Unable to load header from IT1R.\n");
+        goto header_error;
+    }
+
+    *item1rs = malloc(chunk.length);
+    *num_item1rs = chunk.length / sizeof(ds_item1r_t);
+    //printf("chunk.length = %d, num_item1rs = %ld\n", chunk.length, num_item1rs);
+    //exit(1);
+    size_t amt = gff_read_chunk(gff, &chunk, *item1rs, chunk.length);
+    if (amt != chunk.length) {
+        printf("Unable to read IT1R.\n");
+        goto read_error;
+    }
+    //printf("%d: %d\n", 4, item1rs[4].base_AC);
+    //exit(1);
+
+    gff_find_chunk_header(gff, &chunk, GFF_NAME, 1);
+    names = malloc(chunk.length);
+    num_names = chunk.length / 25;
+    amt = gff_read_chunk(gff, &chunk, names, chunk.length);
+    if (amt != chunk.length) {
+        printf("Can't read name\n");
+        goto name_read_error;
+    }
+
+    return EXIT_SUCCESS;
+name_read_error:
+read_error:
+    free(*item1rs);
+    *item1rs = NULL;
+header_error:
+    return EXIT_FAILURE;
+}
+
 static int get_item1rs(gff_manager_t *man) {
+    return gff_read_it1r(man->ds1.gpl, 1, &item1rs, &num_item1rs);
+    /*
     gff_chunk_header_t chunk;
 
     if (item1rs) { return EXIT_SUCCESS; }
@@ -80,6 +121,7 @@ static int get_item1rs(gff_manager_t *man) {
     }
 
     return EXIT_SUCCESS;
+    */
 }
 
 extern int gff_manager_get_item1r(gff_manager_t *man, const int32_t item_idx, ds_item1r_t *item1r) {

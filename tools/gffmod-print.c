@@ -1,6 +1,7 @@
 #include <gff/gff.h>
 #include <gff/gfftypes.h>
 #include <gff/image.h>
+#include <gff/item.h>
 #include <gff/gui.h>
 #include <stdlib.h>
 #include <string.h>
@@ -97,6 +98,44 @@ static void print_name(gff_file_t *gff, unsigned int id) {
     for (int i = 0; i < len; i++) {
         printf("    %d: '%s'\n", i, text + (25 * i));
     }
+}
+
+static void print_it1r(gff_file_t *gff, unsigned int id) {
+    ds_item1r_t *item1rs = NULL;
+    uint32_t     num_item1rs = 0;
+    char         names[16384];
+    uint32_t     len;
+
+    if (gff_read_names(gff, id, names, 16384, &len)) {
+        printf("Unable to read NAME @ %d\n", id);
+    }
+
+    if (gff_read_it1r(gff, id, &item1rs, &num_item1rs)) {
+        printf("Unable to return IT1R #%d\n", id);
+        return;
+    }
+
+    for (int i = 0; i < num_item1rs; i++) {
+        printf("IT1R #%d: %s\n", i, names + 25 * i);
+        printf("    weapon: {type: %d, damage_type: %d, range: %d}\n",
+                item1rs[i].weapon_type,
+                item1rs[i].damage_type,
+                item1rs[i].range);
+        printf("    weight: %d\n", item1rs[i].weight);
+        printf("    base_hp: %d\n", item1rs[i].base_hp);
+        printf("    material: %d\n", item1rs[i].material);
+        printf("    placement: %d\n", item1rs[i].placement);
+        printf("    damage: %d x %d D %d\n",
+                item1rs[i].num_attacks,
+                item1rs[i].dice,
+                item1rs[i].sides);
+        printf("    mod: %d\n", item1rs[i].mod);
+        printf("    flags: %d\n", item1rs[i].flags);
+        printf("    class: %d\n", item1rs[i].legal_class);
+        printf("    AC: %d\n", item1rs[i].base_AC);
+    }
+
+    free(item1rs);
 }
 
 static void print_spin(gff_file_t *gff, unsigned int id) {
@@ -382,6 +421,32 @@ static void print_icon(gff_file_t *gff, uint32_t id) {
     }
 }
 
+static void print_port(gff_file_t *gff, uint32_t id) {
+    gff_frame_info_t info;
+    int fc = gff_get_frame_count(gff, GFF_PORT, id);
+
+
+    printf("PORT #%d:\n", id);
+    printf("    frames: %d\n", fc);
+    for (int i = 0; i < fc; i++) {
+        gff_frame_info(gff, GFF_PORT, id, i, &info);
+        printf("    frame %d: %d x %d\n", i, info.w, info.h);
+    }
+}
+
+static void print_wall(gff_file_t *gff, uint32_t id) {
+    gff_frame_info_t info;
+    int fc = gff_get_frame_count(gff, GFF_WALL, id);
+
+
+    printf("WALL #%d:\n", id);
+    printf("    frames: %d\n", fc);
+    for (int i = 0; i < fc; i++) {
+        gff_frame_info(gff, GFF_WALL, id, i, &info);
+        printf("    frame %d: %d x %d\n", i, info.w, info.h);
+    }
+}
+
 static void print_bmp(gff_file_t *gff, uint32_t id) {
     gff_frame_info_t info;
     int fc = gff_get_frame_count(gff, GFF_BMP, id);
@@ -421,6 +486,9 @@ static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
         case GFF_ICON: print_func = print_icon; break;
         case GFF_BMP: print_func = print_bmp; break;
         case GFF_NAME: print_func = print_name; break;
+        case GFF_IT1R: print_func = print_it1r; break;
+        case GFF_PORT: print_func = print_port; break;
+        case GFF_WALL: print_func = print_wall; break;
         default:
             fprintf(stderr, "printer not written for '%c%c%c%c'\n",
                 entry->chunk_type,
