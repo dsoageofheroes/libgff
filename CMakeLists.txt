@@ -15,6 +15,7 @@ set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -Werror -fsanitize=addres
 
 add_subdirectory(ext/)
 add_subdirectory(src/)
+add_subdirectory(tools/)
 
 enable_testing()
 add_subdirectory(unity/)

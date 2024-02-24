@@ -62,7 +62,7 @@ static int detect_and_load_core_ds1(gff_manager_t *man, const char *full_path, c
         goto load_file;
     }
 
-    if (!strcmp(name, "GPL.GFF")) {
+    if (!strcmp(name, "GPLDATA.GFF")) {
         debug("loading gpl from %s\n", full_path);
         dest = &(man->ds1.gpl);
         goto load_file;
@@ -71,6 +71,12 @@ static int detect_and_load_core_ds1(gff_manager_t *man, const char *full_path, c
     if (!strcmp(name, "SEGOBJEX.GFF")) {
         debug("loading segobjex from %s\n", full_path);
         dest = &(man->ds1.segobjex);
+        goto load_file;
+    }
+
+    if (!strcmp(name, "CHARSAVE.GFF")) {
+        debug("loading charsave from %s\n", full_path);
+        dest = &(man->ds1.charsave);
         goto load_file;
     }
 
@@ -89,9 +95,9 @@ load_file:
     file = NULL;
     return EXIT_SUCCESS;
 
-file_load_error:
-    gff_free(file);
 file_open_error:
+    gff_free(file);
+file_load_error:
 dne:
     return EXIT_FAILURE;
 }
@@ -125,7 +131,7 @@ dir_failure:
 
 extern int gff_manager_create_ds1_region_object(gff_manager_t *man, int region, int etab_id, gff_region_object_t *obj) {
     //gff_chunk_header_t chunk;
-    uint32_t amt;
+    uint32_t amt, len;
     int32_t ojff_index;
     gff_file_t *f;
 
@@ -151,7 +157,7 @@ extern int gff_manager_create_ds1_region_object(gff_manager_t *man, int region, 
     }
 
     if (obj->ojff.script_id
-            && gff_scmd_read(man->ds1.segobjex, obj->ojff.script_id, &obj->scmd)) {
+            && gff_scmd_read(man->ds1.segobjex, obj->ojff.script_id, &obj->scmd, &len)) {
         error("Unable to load object's scmd!");
         goto scmd_error;
     }
@@ -261,6 +267,11 @@ extern int gff_manager_free(gff_manager_t *man) {
         man->ds1.segobjex = NULL;
     }
 
+    if (man->ds1.charsave) {
+        gff_free(man->ds1.charsave);
+        man->ds1.charsave = NULL;
+    }
+
     if (man->ds1.gpl) {
         gff_free(man->ds1.gpl);
         man->ds1.gpl = NULL;
@@ -270,3 +281,26 @@ extern int gff_manager_free(gff_manager_t *man) {
 
     return EXIT_SUCCESS;
 }
+
+extern gff_game_type_t gff_manager_game_type(gff_manager_t *man) {
+    /*
+    if (open_files[RESOURCE_GFF_INDEX].filename && open_files[RESFLOP_GFF_INDEX].filename) {
+        return DARKSUN_2;
+    }
+
+    if (open_files[RESOURCE_GFF_INDEX].filename && !open_files[RESFLOP_GFF_INDEX].filename) {
+        return DARKSUN_1;
+    }
+
+    if (!open_files[RESOURCE_GFF_INDEX].filename && open_files[RESFLOP_GFF_INDEX].filename) {
+        return DARKSUN_ONLINE;
+    }
+    */
+
+    if (man->ds1.resource) {
+        return DARKSUN_1;
+    }
+
+    return DARKSUN_UNKNOWN;
+}
+

@@ -41,7 +41,7 @@ typedef struct gff_ojff_s {
 #define SCMD_DEFAULT_DELAY (16)
 #define SCMD_TICKS_PER_SECOND (96)
 
-extern int gff_scmd_read(gff_file_t *f, const int res_id, gff_scmd_t **scmd);
+extern int gff_scmd_read(gff_file_t *f, const int res_id, gff_scmd_t **scmd, uint32_t *len);
 extern int gff_scmd_next_pos(const gff_scmd_t *scmd, const int scmd_index);
 extern int gff_scmd_total_delay(const gff_scmd_t *scmd, int scmd_index);
 

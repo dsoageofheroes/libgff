@@ -61,9 +61,9 @@ extern int gff_read_button(gff_file_t *f, int res_id, gff_button_t *button) {
         : EXIT_FAILURE;
 }
 
-extern int gff_read_frame(gff_file_t *f, int res_id, gff_frame_t *frame) {
-    return 
-        gff_read_raw(f, GFF_APFM, res_id, (char*)frame, sizeof(gff_frame_t)) >= sizeof(gff_frame_t)
+extern int gff_read_frame(gff_file_t *f, int res_id, gff_full_frame_t *frame) {
+    return
+        gff_read_raw(f, GFF_APFM, res_id, (char*)frame, sizeof(gff_full_frame_t)) >= sizeof(gff_full_frame_t)
         ? EXIT_SUCCESS
         : EXIT_FAILURE;
 }

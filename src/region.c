@@ -10,6 +10,76 @@
 #define RDFF_MAX (1<<12)
 #define GMAP_MAX (MAP_ROWS * MAP_COLUMNS)
 
+extern int gff_read_etab(gff_file_t *gff, int res_id, gff_etab_object_t **etab, uint32_t *num_etabs) {
+    gff_chunk_header_t chunk;
+
+    if (gff_find_chunk_header(gff, &chunk, GFF_ETAB, res_id) == EXIT_FAILURE) {
+        goto dne;
+    }
+
+    *etab = malloc(chunk.length);
+
+    if (!*etab) {
+        error ("unable to malloc for entry table!\n");
+        exit(1);
+    }
+
+    gff_read_chunk(gff, &chunk, *etab, chunk.length);
+    *num_etabs = chunk.length / sizeof(gff_etab_object_t);
+
+    return EXIT_SUCCESS;
+dne:
+    return EXIT_FAILURE;
+}
+
+extern int gff_read_global_flags(gff_file_t *gff, int res_id, uint8_t flags[MAP_ROWS][MAP_COLUMNS]) {
+    gff_chunk_header_t chunk;
+
+    if (gff_find_chunk_header(gff, &chunk, GFF_GMAP, res_id)) {
+        goto chunk_error;
+    }
+
+    if (chunk.length > GMAP_MAX) {
+        error ("chunk.length (%d) is grater that GMAP_MAX(%d)\n", chunk.length, GMAP_MAX);
+        goto chunk_length_error;
+    }
+
+    if (!gff_read_chunk(gff, &chunk, flags, chunk.length)) {
+        error ("Unable to read GFF_GMAP chunk!\n");
+        goto region_read_error;
+    }
+
+    return EXIT_SUCCESS;
+region_read_error:
+chunk_length_error:
+chunk_error:
+    return EXIT_FAILURE;
+}
+
+extern int gff_read_region_flags(gff_file_t *gff, int res_id, uint8_t flags[MAP_ROWS][MAP_COLUMNS]) {
+    gff_chunk_header_t chunk;
+
+    if (gff_find_chunk_header(gff, &chunk, GFF_RMAP, res_id)) {
+        goto chunk_error;
+    }
+
+    if (chunk.length > GMAP_MAX) {
+        error ("chunk.length (%d) is grater that GMAP_MAX(%d)\n", chunk.length, GMAP_MAX);
+        goto chunk_length_error;
+    }
+
+    if (!gff_read_chunk(gff, &chunk, flags, chunk.length)) {
+        error ("Unable to read GFF_RMAP chunk!\n");
+        goto region_read_error;
+    }
+
+    return EXIT_SUCCESS;
+region_read_error:
+chunk_length_error:
+chunk_error:
+    return EXIT_FAILURE;
+}
+
 extern int gff_region_get_num_objects(gff_file_t *f, uint32_t *amt) {
     if (!f) { goto null_err; }
 

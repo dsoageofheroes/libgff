@@ -53,7 +53,7 @@ void test_rdff(void) {
 
 void test_scmd(void) {
     gff_file_t *f = gff_allocate();
-    uint32_t len;
+    uint32_t len, slen;
     gff_scmd_t *scmd;
 
     TEST_ASSERT_NOT_NULL(f);
@@ -65,7 +65,7 @@ void test_scmd(void) {
     unsigned int* ids = gff_get_id_list(f, GFF_SCMD, &len);
     for (int i = 0; i < len; i++) {
         //printf("->%d\n", ids[i]);
-        TS(gff_scmd_read(f, ids[i], &scmd));
+        TS(gff_scmd_read(f, ids[i], &scmd, &slen));
         free(scmd);
         //TS(gff_rdff_load(f, ids[i], &rdff));
         //TS(gff_rdff_to_object(&rdff, &so));
@@ -73,7 +73,7 @@ void test_scmd(void) {
     }
     free(ids);
 
-    TS(gff_scmd_read(f, 256, &scmd));
+    TS(gff_scmd_read(f, 256, &scmd, &len));
     free(scmd);
 
     TS(gff_free(f));

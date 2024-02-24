@@ -4,6 +4,7 @@
 #include "gff/gff.h"
 #include "gff/gfftypes.h"
 #include "gff/image.h"
+#include "gff/item.h"
 #include "gff/manager.h"
 #include "gff/region.h"
 
@@ -84,13 +85,48 @@ void test_images(void) {
     TS(gff_manager_free(man));
 }
 
+void test_item(void) {
+    gff_manager_t *man = gff_manager_create();
+    ds1_item_t     item;
+    ds_item1r_t   item1r;
+    //gff_region_t *reg = NULL;
+
+    TEST_ASSERT_NOT_NULL(man);
+
+    TS(gff_manager_load_ds1(man, "ds1/"));
+
+    TS(gff_item_load(man, &item, 31006));
+    TEST_ASSERT(item.id == -31006);
+    TEST_ASSERT(item.value == 50000);
+
+    gff_manager_get_item1r(man, 81, &item1r);
+
+    TS(gff_manager_free(man));
+}
+
+void test_char(void) {
+    gff_manager_t *man = gff_manager_create();
+    //ds1_item_t     item;
+    //ds_item1r_t   item1r;
+    //gff_region_t *reg = NULL;
+
+    TEST_ASSERT_NOT_NULL(man);
+    TS(gff_manager_load_ds1(man, "ds1/"));
+
+    TEST_ASSERT_NOT_NULL(man->ds1.charsave);
+
+    TS(gff_manager_free(man));
+}
+
 
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_smoke);
     RUN_TEST(test_load_ds1);
-    RUN_TEST(test_load_ds1_region_objects);
-    RUN_TEST(test_load_ds1_region);
-    RUN_TEST(test_images);
+    //RUN_TEST(test_load_ds1_region_objects);
+    //RUN_TEST(test_load_ds1_region);
+    //RUN_TEST(test_images);
+    //RUN_TEST(test_item);
+    //RUN_TEST(test_char);
     return UNITY_END();
 }

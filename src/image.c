@@ -24,11 +24,11 @@ static int plnr_get_next(unsigned char* chunk, int bits_per_symbol);
 static int intensity_multiplier = 4;
 static size_t num_palettes;
 static gff_palette_t palettes[NUM_PALETTES];
-static gff_palette_t *master_palette;
+//static gff_palette_t *master_palette;
 
 void gff_image_init() {
     num_palettes = 0;
-    master_palette = NULL;
+    //master_palette = NULL;
     memset(palettes, 0, sizeof(gff_palette_t) * NUM_PALETTES);
 }
 
@@ -90,14 +90,16 @@ len_error:
 }
 
 extern gff_palette_t*  gff_create_palettes(gff_file_t *f, unsigned int *len) {
-    gff_palettes_read_type(f, GFF_PAL);
+    if (gff_palettes_read_type(f, GFF_PAL) == EXIT_FAILURE) {
+        goto no_palettes;
+    }
 
     for (int i = 0; i < f->pals->len; i++) {
         //palettes[num_palettes] = open_files[gff_idx].pals->palettes[i];
         for (int j = 0; j < PALETTE_SIZE; j++) {
-            palettes[num_palettes].color[j].r = f->pals->palettes[i].color[j].r;
-            palettes[num_palettes].color[j].g = f->pals->palettes[i].color[j].g;
-            palettes[num_palettes].color[j].b = f->pals->palettes[i].color[j].b;
+            //palettes[num_palettes].color[j].r = f->pals->palettes[i].color[j].r;
+            //palettes[num_palettes].color[j].g = f->pals->palettes[i].color[j].g;
+            //palettes[num_palettes].color[j].b = f->pals->palettes[i].color[j].b;
         }
         num_palettes++;
     }
@@ -108,6 +110,9 @@ extern gff_palette_t*  gff_create_palettes(gff_file_t *f, unsigned int *len) {
         //master_palette = open_files[gff_idx].pals->palettes;
     //}
 
+    return NULL;
+no_palettes:
+    *len = 0;
     return NULL;
 }
 
@@ -220,6 +225,7 @@ int gff_get_frame_height(gff_file_t *f, int type_id, int res_id, int frame_id) {
 }
 
 static unsigned char* create_initialized_image_rgb(const unsigned int w, const unsigned h) {
+    if (w == 0 || h == 0) { return NULL; }
     unsigned char *img = malloc(sizeof(uint8_t) * 4 * w * h);
     //printf("img = %p, %d x %d\n", img, w, h);
     if (img == NULL) { return NULL; }
@@ -230,6 +236,10 @@ static unsigned char* create_initialized_image_rgb(const unsigned int w, const u
 unsigned char* create_ds1_rgba(unsigned char *chunk, int cpos, const int width, const int height, const gff_palette_t *cpal) {
     int num_rows = 0;
     unsigned char* img = create_initialized_image_rgb(width, height);
+
+    //printf("width = %d, height = %d\n", width, height);
+    if (!img) { return NULL; }
+
     while (num_rows < height) {
         int row_num = *(chunk + cpos++);
 
@@ -532,7 +542,8 @@ extern unsigned char* gff_get_frame_rgba_palette(gff_file_t *f, int type_id, int
 extern unsigned char* gff_get_frame_rgba_with_palette(gff_file_t *f, int type_id, int res_id, int frame_id, int palette_id) {
     gff_palette_t *cpal = NULL;
     if (palette_id < 0 || palette_id >= num_palettes) {
-        cpal = master_palette;
+        //cpal = master_palette;
+        printf("ERROR!\n");
     } else {
         //cpal = open_files[gff_index].pals->palettes + palette_id;
         cpal = palettes + palette_id;
@@ -554,7 +565,7 @@ unsigned char* gff_get_portrait(unsigned char* bmp_table, unsigned int *width, u
         error("get_portrait: PLAN is not supported!\n");
     } else {
         //unsigned char* ret_img = create_ds1_rgba(bmp_table, frame_offset + 4, width, height, cpal);
-        ret = create_ds1_rgba(bmp_table, frame_offset + 4, *width, *height, master_palette);
+        ret = create_ds1_rgba(bmp_table, frame_offset + 4, *width, *height, NULL);
     }
     return ret;
 }

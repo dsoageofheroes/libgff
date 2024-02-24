@@ -101,5 +101,6 @@ extern int                gff_item_allowed_in_slot(ds1_item_t *item, const int s
 */
 
 extern int gff_item_read(gff_file_t *f, int id, ds1_item_t *item);
+extern int gff_read_it1r(gff_file_t *gff, int res_id, ds_item1r_t **item1rs, uint32_t *num_item1rs);
 
 #endif
