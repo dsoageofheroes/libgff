@@ -131,7 +131,7 @@ dir_failure:
 
 extern int gff_manager_create_ds1_region_object(gff_manager_t *man, int region, int etab_id, gff_region_object_t *obj) {
     //gff_chunk_header_t chunk;
-    uint32_t amt;
+    uint32_t amt, len;
     int32_t ojff_index;
     gff_file_t *f;
 
@@ -157,7 +157,7 @@ extern int gff_manager_create_ds1_region_object(gff_manager_t *man, int region, 
     }
 
     if (obj->ojff.script_id
-            && gff_scmd_read(man->ds1.segobjex, obj->ojff.script_id, &obj->scmd)) {
+            && gff_scmd_read(man->ds1.segobjex, obj->ojff.script_id, &obj->scmd, &len)) {
         error("Unable to load object's scmd!");
         goto scmd_error;
     }

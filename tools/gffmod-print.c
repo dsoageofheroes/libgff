@@ -2,10 +2,15 @@
 #include <gff/gfftypes.h>
 #include <gff/image.h>
 #include <gff/item.h>
+#include <gff/region.h>
 #include <gff/gui.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+static int indent = 0;
+
+#define printfi(...) { printf("%*s", indent, ""); printf(__VA_ARGS__); }
 
 static void print_gff_frame(gff_frame_t *frame) {
     printf("    flags: %d, ", frame->flags);
@@ -36,14 +41,16 @@ static void print_button(gff_file_t *gff, unsigned int id) {
     gff_button_t button;
 
     gff_read_button(gff, id, &button);
-    printf("BUTTON #%d\n", id);
-    printf("    header = {type: %d, len: %d, id: %d}\n", button.rh.type, button.rh.len, button.rh.id);
-    printf("    icon: %d @ (%d, %d)\n", button.icon_id, button.iconx, button.icony);
+    printfi("BUTTON #%d\n", id);
+    printfi("    header = {type: %d, len: %d, id: %d}\n", button.rh.type, button.rh.len, button.rh.id);
+    printfi("    icon: %d @ (%d, %d)\n", button.icon_id, button.iconx, button.icony);
+    indent += 4;
     print_gff_frame(&button.frame);
-    printf("    flags: %d\n", button.flags);
-    printf("    userid: %d\n", button.userid);
-    printf("    text: '%s' (%d, %d)\n", button.text, button.textx, button.texty);
-    printf("    key: %d\n", button.key);
+    indent -= 4;
+    printfi("    flags: %d\n", button.flags);
+    printfi("    userid: %d\n", button.userid);
+    printfi("    text: '%s' (%d, %d)\n", button.text, button.textx, button.texty);
+    printfi("    key: %d\n", button.key);
 }
 
 
@@ -280,20 +287,20 @@ static void print_accl(gff_file_t *gff, unsigned int id) {
     gff_accl_t *accl;
 
     if (gff_find_chunk_header(gff, &chunk, GFF_ACCL, id)) {
-        printf("unable to read ACCL #%d\n", id);
+        printfi("unable to read ACCL #%d\n", id);
         return;
     }
-    printf("ACCL #%d: length is %d\n ", id, chunk.length);
+    printfi("ACCL #%d: length is %d\n ", id, chunk.length);
 
     data = malloc(chunk.length);
     if (gff_read_chunk(gff, &chunk, data, chunk.length) != chunk.length) {
-        printf("Can't read ACCL #%d\n", id);
+        printfi("Can't read ACCL #%d\n", id);
         return;
     }
 
     accl = (gff_accl_t*)data;
     for (int i = 0; i < accl->count; i++) {
-        printf("    %d: flags: 0x%x event: %d user_id: %d\n", i, accl->entries[i].flags, accl->entries[i].event, accl->entries[i].user_id);
+        printfi("    %d: flags: 0x%x event: %d user_id: %d\n", i, accl->entries[i].flags, accl->entries[i].event, accl->entries[i].user_id);
     }
 
     free(data);
@@ -304,49 +311,49 @@ static void print_ebox(gff_file_t *gff, unsigned int id) {
     //gff_frame_t frame;
 
     if (gff_read_ebox(gff, id, &ebox)) {
-        printf("unable to read EBOX #%d\n", id);
+        printfi("unable to read EBOX #%d\n", id);
         return;
     }
 
-    printf("EBOX #%d:\n", id);
-    printf("    header = {type: %d, len: %d, id: %d}\n", ebox.rh.type, ebox.rh.len, ebox.rh.id);
-    printf("    max_lines: %d, ", ebox.max_lines);
-    printf("styles: %d, ", ebox.styles);
-    printf("runs: %d, ", ebox.runs);
-    printf("size: %d\n", ebox.size);
-    printf("    user_id: %d\n", ebox.user_id);
-    printf("    bounds: { (%d, %d) -> (%d, %d) }\n",
+    printfi("EBOX #%d:\n", id);
+    printfi("    header = {type: %d, len: %d, id: %d}\n", ebox.rh.type, ebox.rh.len, ebox.rh.id);
+    printfi("    max_lines: %d, ", ebox.max_lines);
+    printfi("styles: %d, ", ebox.styles);
+    printfi("runs: %d, ", ebox.runs);
+    printfi("size: %d\n", ebox.size);
+    printfi("    user_id: %d\n", ebox.user_id);
+    printfi("    bounds: { (%d, %d) -> (%d, %d) }\n",
             ebox.frame.bounds.xmin,
             ebox.frame.bounds.ymin,
             ebox.frame.bounds.xmax,
             ebox.frame.bounds.xmax);
-    printf("    initbounds: { (%d, %d) -> (%d, %d) }\n",
+    printfi("    initbounds: { (%d, %d) -> (%d, %d) }\n",
             ebox.frame.initbounds.xmin,
             ebox.frame.initbounds.ymin,
             ebox.frame.initbounds.xmax,
             ebox.frame.initbounds.xmax);
-    printf("    zonebounds: { (%d, %d) -> (%d, %d) }\n",
+    printfi("    zonebounds: { (%d, %d) -> (%d, %d) }\n",
             ebox.frame.zonebounds.xmin,
             ebox.frame.zonebounds.ymin,
             ebox.frame.zonebounds.xmax,
             ebox.frame.zonebounds.xmax);
-    printf("    border_bmp: %d\n", ebox.frame.border_bmp);
-    printf("    background_bmp: %d\n", ebox.frame.background_bmp);
+    printfi("    border_bmp: %d\n", ebox.frame.border_bmp);
+    printfi("    background_bmp: %d\n", ebox.frame.background_bmp);
 }
 
 static void print_frame(gff_file_t *gff, unsigned int id) {
     gff_full_frame_t frame;
 
     if (gff_read_frame(gff, id, &frame)) {
-        printf("unable to read Frame #%d\n", id);
+        printfi("unable to read Frame #%d\n", id);
         return;
     }
 
-    printf("APFM #%d:\n", id);
-    printf("    header = {type: %d, len: %d, id: %d}\n", frame.rh.type, frame.rh.len, frame.rh.id);
+    printfi("APFM #%d:\n", id);
+    printfi("    header = {type: %d, len: %d, id: %d}\n", frame.rh.type, frame.rh.len, frame.rh.id);
     print_gff_frame(&frame.frame);
-    printf("    event_filter: %d\n", frame.event_filter);
-    printf("    snap: { mode: %d, (%x, %x), w: %d, h: %d }\n",
+    printfi("    event_filter: %d\n", frame.event_filter);
+    printfi("    snap: { mode: %d, (%x, %x), w: %d, h: %d }\n",
             frame.snap_mode,
             frame.snap_x,
             frame.snap_y,
@@ -359,8 +366,8 @@ static void print_window(gff_file_t *gff, unsigned int id) {
     uint8_t      *buf = NULL;
 
     gff_read_window(gff, id, &win);
-    printf("WINDOW #%d:\n", id);
-    printf("    header = {type: %d, len: %d, id: %d}\n", win->rh.type, win->rh.len, win->rh.id);
+    printfi("WINDOW #%d:\n", id);
+    printfi("    header = {type: %d, len: %d, id: %d}\n", win->rh.type, win->rh.len, win->rh.id);
     /*
     printf("    region:\n");
     printf("        depth: %d\n", win->region.depth);
@@ -377,13 +384,14 @@ static void print_window(gff_file_t *gff, unsigned int id) {
                 win->region.regions[i].ymax);
     }
     */
-    printf("    pos: (%d, %d)\n", win->x, win->y);
-    printf("    flags: %d\n", win->flags);
+    printfi("    pos: (%d, %d)\n", win->x, win->y);
+    printfi("    flags: %d\n", win->flags);
     print_gff_frame(&win->frame);
-    printf("    offset: (%d, %d)\n", win->offsetx, win->offsety);
-    printf("    item_count: %d\n", win->itemCount);
+    printfi("    offset: (%d, %d)\n", win->offsetx, win->offsety);
+    printfi("    item_count: %d\n", win->itemCount);
 
     buf = (uint8_t*)win;
+    indent += 4;
     for (int i = 0; i < win->itemCount; i++) {
         gff_gui_item_t *item = (gff_gui_item_t*)(buf + sizeof(gff_window_t) + 12 + i *(sizeof(gff_gui_item_t)));
         switch (item->type) {
@@ -403,9 +411,9 @@ static void print_window(gff_file_t *gff, unsigned int id) {
                 printf("UNKNOWN TYPE IN WINDOW: %d\n", item->type);
         }
     }
+    indent -= 4;
 
     free(win);
-    printf("WINDOW #%d END\n", id);
 }
 
 static void print_icon(gff_file_t *gff, uint32_t id) {
@@ -447,15 +455,171 @@ static void print_wall(gff_file_t *gff, uint32_t id) {
     }
 }
 
+static void print_etab(gff_file_t *gff, uint32_t id) {
+    gff_etab_object_t *etabs;
+    uint32_t amt;
+
+    if (gff_read_etab(gff, id, &etabs, &amt)) {
+        printf("Can't read ETAB.\n");
+        return;
+    }
+
+    for (int i = 0; i < amt; i++) {
+        gff_etab_object_t *etab = etabs + i;
+        printf("ETAB #%d:\n", i);
+        printf("    pos: { %d, %d, %d }\n",
+                etab->xpos,
+                etab->ypos,
+                etab->zpos);
+        printf("    flags: %d\n", etab->flags);
+        printf("    index: %d NEED TO INJECT OJFF or RDFF HERE\n", etab->index);
+    }
+
+    free(etabs);
+}
+
 static void print_bmp(gff_file_t *gff, uint32_t id) {
     gff_frame_info_t info;
     int fc = gff_get_frame_count(gff, GFF_BMP, id);
 
-    printf("BMP #%d:\n", id);
-    printf("    frames: %d\n", fc);
+    printfi("BMP #%d:\n", id);
+    printfi("    frames: %d\n", fc);
     for (int i = 0; i < fc; i++) {
         gff_frame_info(gff, GFF_BMP, id, i, &info);
-        printf("    frame %d: %d x %d\n", i, info.w, info.h);
+        printfi("    frame %d: %d x %d\n", i, info.w, info.h);
+    }
+}
+
+static void print_tile(gff_file_t *gff, uint32_t id) {
+    gff_frame_info_t info;
+    int fc = gff_get_frame_count(gff, GFF_TILE, id);
+
+    printfi("TILE #%d:\n", id);
+    printfi("    frames: %d\n", fc);
+    for (int i = 0; i < fc; i++) {
+        gff_frame_info(gff, GFF_TILE, id, i, &info);
+        printfi("    frame %d: %d x %d\n", i, info.w, info.h);
+    }
+}
+
+static void print_gmap(gff_file_t *gff, uint32_t id) {
+    uint8_t flags[MAP_ROWS][MAP_COLUMNS];
+
+    if (gff_read_global_flags(gff, id, flags)) {
+        printf("Unable to read GMAP.\n");
+        return;
+    }
+
+    for (int i = 0; i < MAP_ROWS; i++) {
+        for (int j = 0; j < MAP_COLUMNS; j++) {
+            printf("%d ", flags[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+static void print_rmap(gff_file_t *gff, uint32_t id) {
+    uint8_t flags[MAP_ROWS][MAP_COLUMNS];
+
+    if (gff_read_region_flags(gff, id, flags)) {
+        printf("Unable to read GMAP.\n");
+        return;
+    }
+
+    for (int i = 0; i < MAP_ROWS; i++) {
+        for (int j = 0; j < MAP_COLUMNS; j++) {
+            printf("%d ", flags[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+static void print_rdff(gff_file_t *gff, uint32_t id) {
+    gff_rdff_t rdff;
+
+    if (gff_rdff_load(gff, id, &rdff)) {
+        printf("Unable to load RDFF.\n");
+        return;
+    }
+
+    switch(rdff.header.load_action) {
+        case RDFF_OBJECT:
+            printf("RDFF #%d (OBJECT):\n", id);
+            break;
+        case RDFF_CONTAINER:
+            printf("RDFF #%d (CONTAINER):\n", id);
+            break;
+        case RDFF_DATA:
+            printf("RDFF #%d (DATA):\n", id);
+            break;
+        case RDFF_NEXT:
+            printf("RDFF #%d (NEXT):\n", id);
+            break;
+        case RDFF_END:
+            printf("RDFF #%d (END):\n", id);
+            break;
+    }
+    printf("    header: {blocknum: %d, type: %d, index: %d, from: %d, len: %d}\n",
+            rdff.header.blocknum,
+            rdff.header.type,
+            rdff.header.index,
+            rdff.header.from,
+            rdff.header.len);
+    printf("< NEED TO WRITE THE REST. >\n");
+}
+
+static void print_scmd(gff_file_t *gff, uint32_t res_id) {
+    gff_scmd_t *scmd = NULL;
+    uint32_t len;
+    int last = 0;
+
+    if (gff_scmd_read(gff, res_id, &scmd, &len)) {
+        printf("Unable to read SCMD.\n");
+        return;
+    }
+
+    printfi("SCMD #%d\n", res_id);
+    for (int i = 0; !last && i < len; i++ ) {
+        printfi("    [%d]: bmp: %d, delay: %d, flags %d, %d x %d, offset: %d x %d, sound: %d\n",
+                i,
+                scmd[i].bmp_idx,
+                scmd[i].delay,
+                scmd[i].flags,
+                scmd[i].xoffset,
+                scmd[i].yoffset,
+                scmd[i].xoffsethot,
+                scmd[i].yoffsethot,
+                scmd[i].soundidx);
+        last = scmd[i].flags & (SCMD_LAST | SCMD_JUMP);
+    }
+
+    free(scmd);
+}
+
+static void print_ojff(gff_file_t *gff, uint32_t res_id) {
+    gff_ojff_t ojff;
+
+    if (gff_ojff_read(gff, res_id, &ojff)) {
+        printfi("Can't read OJFF\n");
+        return;
+    }
+
+    printfi("OJFF: #%d\n", res_id);
+    printfi("    flags: %d\n", ojff.flags);
+    printfi("    offset: %d x %d\n", ojff.xoffset, ojff.yoffset);
+    printfi("    pos: %d x %d x %d\n", ojff.xpos, ojff.ypos, ojff.zpos);
+    printfi("    obj: %d\n", ojff.object_index);
+    printfi("    bmp: %d\n", ojff.bmp_id);
+    if (ojff.bmp_id > 0) {
+        indent += 4;
+        print_bmp(gff, ojff.bmp_id);
+        indent -= 4;
+    }
+    printfi("    script: %d\n", ojff.script_id);
+    if (ojff.script_id > 0) {
+        indent += 4;
+        print_scmd(gff, ojff.script_id);
+        indent -= 4;
     }
 }
 
@@ -489,6 +653,13 @@ static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
         case GFF_IT1R: print_func = print_it1r; break;
         case GFF_PORT: print_func = print_port; break;
         case GFF_WALL: print_func = print_wall; break;
+        case GFF_ETAB: print_func = print_etab; break;
+        case GFF_GMAP: print_func = print_gmap; break;
+        case GFF_RMAP: print_func = print_rmap; break;
+        case GFF_TILE: print_func = print_tile; break;
+        case GFF_RDFF: print_func = print_rdff; break;
+        case GFF_SCMD: print_func = print_scmd; break;
+        case GFF_OJFF: print_func = print_ojff; break;
         default:
             fprintf(stderr, "printer not written for '%c%c%c%c'\n",
                 entry->chunk_type,

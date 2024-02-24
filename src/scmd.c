@@ -47,7 +47,7 @@ extern gff_scmd_t* gff_scmd_empty() {
     return &empty_scmd;
 }
 
-extern int gff_scmd_read(gff_file_t *f, const int res_id, gff_scmd_t **scmd) {
+extern int gff_scmd_read(gff_file_t *f, const int res_id, gff_scmd_t **scmd, uint32_t *len) {
     if (res_id <= 0 || res_id >= SCMD_MAX) { return EXIT_FAILURE; } // needs a better check...
 
     gff_chunk_header_t chunk;
@@ -61,6 +61,7 @@ extern int gff_scmd_read(gff_file_t *f, const int res_id, gff_scmd_t **scmd) {
     }
 
     *scmd = malloc(chunk.length);
+    *len = chunk.length / sizeof(gff_scmd_t);
     if (*scmd == NULL) {
         goto memory_error;
     }
