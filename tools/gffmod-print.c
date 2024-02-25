@@ -5,6 +5,7 @@
 #include <gff/manager.h>
 #include <gff/region.h>
 #include <gff/gui.h>
+#include <gpl/gpl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -633,6 +634,22 @@ static void print_ojff(gff_file_t *gff, uint32_t res_id) {
     }
 }
 
+static void print_mas(gff_file_t *gff, unsigned int id) {
+    uint8_t *mas = NULL;
+    size_t len;
+
+    if (gff_load_mas(gff, id, &mas, &len)) {
+        printf("unable to load MAS\n");
+        return;
+    }
+
+    printf("MAS #%d: length: %zu\n", id, len);
+
+    gff_gpl_parse(mas, len, NULL, 1);
+
+    free(mas);
+}
+
 static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
     uint32_t len;
     unsigned int *ids;
@@ -670,6 +687,7 @@ static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
         case GFF_RDFF: print_func = print_rdff; break;
         case GFF_SCMD: print_func = print_scmd; break;
         case GFF_OJFF: print_func = print_ojff; break;
+        case GFF_MAS: print_func = print_mas; break;
         default:
             fprintf(stderr, "printer not written for '%c%c%c%c'\n",
                 entry->chunk_type,

@@ -127,7 +127,7 @@ static void dump_entries(gff_file_t *gff, const char *path) {
     unsigned int *ids = NULL;
     uint32_t len;
     char name[256];
-    char *buf;
+    uint8_t *buf;
     size_t buflen;
 
     // If not a number convert from type to index

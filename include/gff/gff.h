@@ -32,9 +32,11 @@ extern int                gff_get_type_id(gff_file_t *f, int type_index);
 extern ssize_t            gff_get_palette_len(gff_file_t *f);
 extern ssize_t            gff_get_palette_id(gff_file_t *f, int palette_num);
 extern size_t             gff_read_chunk_piece(gff_file_t *f, gff_chunk_header_t *chunk, void *read_buf, const size_t len);
-extern int                gff_read_raw(gff_file_t *f, int gff_type, int res_id, char *buf, size_t len);
-extern size_t             gff_read_raw_allocate(gff_file_t *f, int gff_type, int res_id, char **buf);
+extern int                gff_read_raw(gff_file_t *f, int gff_type, int res_id, uint8_t *buf, size_t len);
+extern size_t             gff_read_raw_allocate(gff_file_t *f, int gff_type, int res_id, uint8_t **buf);
 extern int                gff_read_text(gff_file_t *f, int res_id, char *text, size_t len);
+extern int                gff_read_mas(gff_file_t *f, int res_id, uint8_t *text, size_t len);
+extern int                gff_load_mas(gff_file_t *f, int res_id, uint8_t **mas, size_t *len);
 extern int                gff_read_names(gff_file_t *f, int res_id, char *names, size_t len, uint32_t *amt);
 extern int                gff_read_rdat(gff_file_t *f, int res_id, char *text, size_t len);
 extern int                gff_read_spin(gff_file_t *f, int res_id, char *text, size_t len);
@@ -45,7 +47,7 @@ extern int                gff_read_monster_list(gff_file_t *f, int res_id, gff_m
 extern int                gff_write_raw_bytes(gff_file_t *f, int type_id, int res_id, const char *path); // DEPRECATED?
 extern size_t             gff_write_chunk(gff_file_t *f, const gff_chunk_header_t chunk, const char *path);
 extern int                gff_create(const char *pathName);
-extern size_t             gff_add_chunk(const int idx, const int type_id, int res_id, char *buf, const size_t len);
+extern size_t             gff_add_chunk(const int idx, const int type_id, int res_id, uint8_t *buf, const size_t len);
 extern size_t             gff_add_type(const int idx, const int type_id);
 
 /* Consider making private */
