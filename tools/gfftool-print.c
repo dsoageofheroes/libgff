@@ -650,6 +650,23 @@ static void print_mas(gff_file_t *gff, unsigned int id) {
     free(mas);
 }
 
+static void print_gpl(gff_file_t *gff, unsigned int id) {
+    uint8_t *gpl = NULL;
+    size_t len;
+
+    if (gff_load_gpl(gff, id, &gpl, &len)) {
+        printf("unable to load GPL\n");
+        return;
+    }
+
+    printf("GPL #%d: length: %zu\n", id, len);
+
+    gff_gpl_parse(gpl, len, NULL, 0);
+
+    free(gpl);
+}
+
+
 static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
     uint32_t len;
     unsigned int *ids;
@@ -688,6 +705,7 @@ static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
         case GFF_SCMD: print_func = print_scmd; break;
         case GFF_OJFF: print_func = print_ojff; break;
         case GFF_MAS: print_func = print_mas; break;
+        case GFF_GPL: print_func = print_gpl; break;
         default:
             fprintf(stderr, "printer not written for '%c%c%c%c'\n",
                 entry->chunk_type,

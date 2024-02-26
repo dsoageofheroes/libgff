@@ -37,6 +37,7 @@ extern size_t             gff_read_raw_allocate(gff_file_t *f, int gff_type, int
 extern int                gff_read_text(gff_file_t *f, int res_id, char *text, size_t len);
 extern int                gff_read_mas(gff_file_t *f, int res_id, uint8_t *text, size_t len);
 extern int                gff_load_mas(gff_file_t *f, int res_id, uint8_t **mas, size_t *len);
+extern int                gff_load_gpl(gff_file_t *f, int res_id, uint8_t **gpl, size_t *len);
 extern int                gff_read_names(gff_file_t *f, int res_id, char *names, size_t len, uint32_t *amt);
 extern int                gff_read_rdat(gff_file_t *f, int res_id, char *text, size_t len);
 extern int                gff_read_spin(gff_file_t *f, int res_id, char *text, size_t len);

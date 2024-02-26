@@ -734,6 +734,12 @@ extern int gff_load_mas(gff_file_t *f, int res_id, uint8_t **mas, size_t *len) {
          : EXIT_FAILURE;
 }
 
+extern int gff_load_gpl(gff_file_t *f, int res_id, uint8_t **gpl, size_t *len) {
+     return (*len = gff_read_raw_allocate(f, GFF_GPL, res_id, gpl))
+         ? EXIT_SUCCESS
+         : EXIT_FAILURE;
+}
+
 extern int gff_read_names(gff_file_t *f, int res_id, char *names, size_t len, uint32_t *amt) {
     //int amt_read = gff_read_raw(f, GFF_NAME, res_id, text, len);
     gff_chunk_header_t chunk;

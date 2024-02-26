@@ -1,3 +1,3 @@
-add_executable(gffmod gffmod.c gffmod-write.c gffmod-print.c)
-target_link_libraries(gffmod gff xmi2mid)
+add_executable(gfftool gfftool.c gfftool-write.c gfftool-print.c)
+target_link_libraries(gfftool gff xmi2mid)
 include_directories(../include)

@@ -34,6 +34,7 @@ typedef struct gpl_data_s {
     uint8_t *end;
     uint16_t depth;
     uint8_t is_mas;
+    uint8_t in_retval;
     gff_gpl_transformer_t *ggt;
 } gpl_data_t;
 

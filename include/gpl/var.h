@@ -182,6 +182,5 @@ extern int gff_gpl_get_data_ptr(unsigned char **ret);
 extern int gff_gpl_pop_data_ptr(unsigned char **ret);
 
 extern int gff_gpl_peek_half_word(uint16_t *hw);
-extern int gff_gpl_preview_byte(uint8_t offset, uint16_t *d);
 
 #endif

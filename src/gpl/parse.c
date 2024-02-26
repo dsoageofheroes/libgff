@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-static int in_retval = 0;
-
 typedef struct gpl_command_s {
     int (*func)(gpl_data_t *gpl);
     const char *name;
@@ -14,6 +12,16 @@ typedef struct gpl_command_s {
 static void gpl_retval(gpl_data_t *gpl, uint8_t cmd);
 
 static int32_t gpl_global_big_num = 0;
+
+static int gpl_preview_byte(gpl_data_t *gpl, uint8_t *b) {
+    *b = (uint8_t) *(gpl->gpl);
+    return EXIT_SUCCESS;
+}
+
+static int gpl_preview_halfword(gpl_data_t *gpl, uint16_t *h) {
+    *h = (uint32_t) *(gpl->gpl);
+    return EXIT_SUCCESS;
+}
 
 extern int gff_gpl_get_byte(gpl_data_t *gpl, uint8_t *b) {
     *b = (uint8_t) *(gpl->gpl);
@@ -45,8 +53,8 @@ static int gpl_get_word(gpl_data_t *gpl, uint16_t *w) {
     return EXIT_SUCCESS;
 }
 
-static int gpl_preview_byte(gpl_data_t *gpl, uint8_t offset, uint16_t *d) {
-    *d = *(gpl->gpl + offset);
+static int gpl_preview_byte16(gpl_data_t *gpl, uint16_t *d) {
+    *d = *(gpl->gpl);
     return EXIT_SUCCESS;
 }
 
@@ -179,56 +187,59 @@ static int gpl_read_simple_num_var(gpl_data_t *gpl) {
     return EXIT_SUCCESS;
 }
 
-static uint8_t gpl_access_complex(int16_t *header, uint16_t *depth, uint16_t *element, int32_t *obj_name) {
-    error("ACCESS COMPLEX NOT IMPLEMENTED!\n")
-    /*
+static int gpl_access_complex(gpl_data_t *gpl, int16_t *header, uint16_t *depth, uint16_t *element, int32_t *obj_name) {
     uint16_t i;
     uint8_t b;
     
-    *obj_name = gpl_lua_get_word();
+    gpl_get_word(gpl, &i);
+    *obj_name = (int32_t)i;
     //debug("header = %d, depth = %d, element = %d, obj_name = %d\n", *header, *depth, *element, obj_name);
     if (*obj_name < 0x8000) {
-        lprintf("--access_complex: I need to convert from ID to header!\n");
+        //lprintf("--access_complex: I need to convert from ID to header!\n");
+        printf(" ID = ( %d ) ", *obj_name);
     } else {
-        lprintf("--access_complex: I need to set the *head to the correct view\n");
+        //lprintf("--access_complex: I need to set the *head to the correct view\n");
         switch (*obj_name & 0x7FFF) {
             case 0x25: // POV, which is active character.
-                //lprintf("obj = gpl.get_pov(%d) -- %d \n", *obj_name & 0x7FFF, *obj_name);
-                lprintf("--access_complex: get POV, valid obj_name(%d), need to set header\n", *obj_name & 0x7FFF);
+                printf(" SET CURRENT TO POV ");
+                //lprintf("--access_complex: get POV, valid obj_name(%d), need to set header\n", *obj_name & 0x7FFF);
                 break;
             case 0x26: // ACTIVE
-                lprintf("--access_complex: get ACTIVE, valid obj_name(%d), need to set header\n", *obj_name & 0x7FFF);
+                printf(" SET CURRENT TO ACTIVE ");
+                //lprintf("--access_complex: get ACTIVE, valid obj_name(%d), need to set header\n", *obj_name & 0x7FFF);
                 break;
             case 0x27: // PASSIVE
-                //lprintf("obj = gpl.get_gname(%d) -- passive\n", GNAME_PASSIVE);
-                lprintf("--access_complex: get PASSIVE, valid obj_name(%d), need to set header\n", *obj_name & 0x7FFF);
+                printf(" SET CURRENT TO PASSIVE ");
+                //lprintf("--access_complex: get PASSIVE, valid obj_name(%d), need to set header\n", *obj_name & 0x7FFF);
                 break;
             case 0x28: // OTHER
-                lprintf("--access_complex: get OTHER, valid obj_name(%d), need to set header\n", *obj_name & 0x7FFF);
-                //lprintf("other = obj \n");
+                printf(" SET CURRENT TO OTHER ");
+                //lprintf("--access_complex: get OTHER, valid obj_name(%d), need to set header\n", *obj_name & 0x7FFF);
                 break;
             case 0x2C: // OTHER1
-                lprintf("--access_complex: get OTHER1, valid obj_name(%d), need to set header\n", *obj_name & 0x7FFF);
+                printf(" SET CURRENT TO OTHER1 ");
+                //lprintf("--access_complex: get OTHER1, valid obj_name(%d), need to set header\n", *obj_name & 0x7FFF);
                 break;
             case 0x2B: // THING
-                lprintf("--access_complex: get THING, valid obj_name(%d), need to set header\n", *obj_name & 0x7FFF);
+                printf(" SET CURRENT TO THING ");
+                //lprintf("--access_complex: get THING, valid obj_name(%d), need to set header\n", *obj_name & 0x7FFF);
                 break;
             default:
-                lprintf("--access_complex: unknown arg: %d", *obj_name & 0x7FFF);
-                return 0;
+                error("--ACCESS_COMPLEX: UNKNOWN ARG: %d", *obj_name & 0x7FFF);
+                return EXIT_FAILURE;
         }
     }
-    sol_gpl_get_byte(&b);
+    gpl_get_byte(gpl, &b);
     *depth = b;
-    //debug("--access_compledx:depth = %d\n", *depth);
+    //printf("ELEMENT: [");
     for (i = 1; i <= *depth; i++) {
-        sol_gpl_get_byte(&b);
+        gpl_get_byte(gpl, &b);
         element[i-1] = b;
-        //debug("--access_complex:element[%d] = %d\n", i-1, element[i-1]);
+        //printf("%d ", b);
     }
+    //printf("]");
 
-    */
-    return 1;
+    return EXIT_SUCCESS;
 }
 
 static void gpl_write_complex_var(gpl_data_t *gpl) {
@@ -239,7 +250,7 @@ static void gpl_write_complex_var(gpl_data_t *gpl) {
 
     memset(element, 0x0, sizeof(uint16_t) * MAX_SEARCH_STACK);
  
-    if (gpl_access_complex(&header, &depth, element, &obj_name) == 1) {
+    if (gpl_access_complex(gpl, &header, &depth, element, &obj_name) == 1) {
         //lprintf("--complex_write: I need to write 'accum' to header (%d) at depth (%d)\n", header, depth);
         //lprintf("print (\"writing complex: header=\", %d, \"depth = \", %d, \"obj_name = \", %d)", header, depth, obj_name);
         //smart_write_data(header, depth, element, data);
@@ -265,8 +276,8 @@ int32_t gpl_get_complex_data(int16_t header, uint16_t depth, uint16_t *element) 
     */
     //} while (/*(field_error == 0) && */ (i < depth));
     //return ret;
-    error("--get_complex_data: header:%d, depth:%d element:%d\n", header, depth, *element);
-    exit(1);
+    printf("--GET_COMPLEX_DATA: HEADER:%d, DEPTH:%d ELEMENT:%d\n", header, depth, *element);
+    //exit(1);
     return 1;
 }
 
@@ -278,13 +289,13 @@ static int32_t gpl_read_complex(gpl_data_t *gpl) {//, char *buf, size_t *buf_pos
     int32_t obj_name;
     memset(element, 0x0, sizeof(uint16_t) * MAX_SEARCH_STACK);
 
-    if (gpl_access_complex(&header, &depth, element, &obj_name) == 1) {
+    if (gpl_access_complex(gpl, &header, &depth, element, &obj_name) == EXIT_SUCCESS) {
         // So if depth == 0 then get type, is the type, 1 is the id (like -319)
         switch (depth) {
             case 0:
                 //lprintf("gpl.get_type(obj)\n"); 
                 //*buf_pos += snprintf(buf + *buf_pos, size - *buf_pos, "gpl.get_type(obj)");
-                printf("get_type(obj)\n");
+                printf("GET_TYPE(obj)\n");
                 break;
             case 1:
                 //lprintf("gpl.get_id(obj)\n");
@@ -292,21 +303,19 @@ static int32_t gpl_read_complex(gpl_data_t *gpl) {//, char *buf, size_t *buf_pos
                 //*buf_pos += snprintf(buf + *buf_pos, size - *buf_pos, "gpl.get_id(obj, %d)", obj_name);
                 //*buf_pos += snprintf(buf + *buf_pos, size - *buf_pos,
                      //"gpl.get_element(%d, %d, %d, %d)", obj_name, header, depth, *element);
-                printf("gpl.get_element(%d, %d, %d, %d)", obj_name, header, depth, *element);
+                printf("GET_ELEMENT(%d, %d, %d, %d)", obj_name, header, depth, *element);
                 break;
             default:
                 //*buf_pos += snprintf(buf + *buf_pos, size - *buf_pos, "gpl.read_complex(%d, %d, %d)", obj_name, header, depth);
-                printf("gpl.read_complex(%d, %d, %d)", obj_name, header, depth);
+                printf("READ_COMPLEX(%d, %d, %d)", obj_name, header, depth);
                 break;
         }
-        printf("--read_complex:reading header (%d) at depth (%d)\n", header, depth);
-        printf("--gpl.get_element(%d, %d, %d, %d)\n", obj_name, header, depth, *element);
+        //printf("--read_complex:reading header (%d) at depth (%d)\n", header, depth);
+        //printf("--gpl.get_element(%d, %d, %d, %d)\n", obj_name, header, depth, *element);
         ret = gpl_get_complex_data(header, depth, element);
         return ret;
-    } else {
-        error("READ COMPLEX ELSE NOT IMPLEMENTED!\n");
-        //lua_exit("--read_complex else not implemented!\n");
-    }
+    } 
+    printf(" SET GBIGNUMPTR TO PREVIOUS ");
 
     return ret;
 }
@@ -560,7 +569,7 @@ static size_t gpl_read_number(gpl_data_t *gpl) {
         }
         if (!do_next) {
             //do_next = ((sol_gpl_preview_byte(0, &next_op) == SOL_SUCCESS && next_op > OPERATOR_OFFSET && next_op <= OPERATOR_LAST));
-            do_next = ((gpl_preview_byte(gpl, 0, &next_op) == EXIT_SUCCESS && next_op > OPERATOR_OFFSET && next_op <= OPERATOR_LAST));
+            do_next = ((gpl_preview_byte16(gpl, &next_op) == EXIT_SUCCESS && next_op > OPERATOR_OFFSET && next_op <= OPERATOR_LAST));
         }
     } while (do_next || paren_level > 0);
         //((sol_gpl_preview_byte(0, &next_op) == SOL_SUCCESS && next_op > OPERATOR_OFFSET && next_op <= OPERATOR_LAST)));
@@ -578,13 +587,27 @@ static void gpl_get_parameters(gpl_data_t *gpl, int16_t amt) {
     }
 }
 
+static int load_accum(gpl_data_t *gpl) {
+    printf("ACCUM <= ");
+    gpl_read_number(gpl);
+    return EXIT_SUCCESS;
+}
 
 int gpl_load_accum(gpl_data_t *gpl) {
-    //char buf[4096];
-    printf("ACCUM <= ");
-    gpl_read_number(gpl);//, buf, 4096);
+    load_accum(gpl);
     printf("\n");
-    //printf("accum = %s -- load_accum\n", buf);
+    return EXIT_SUCCESS;
+}
+
+int gpl_global_ret(gpl_data_t *gpl) {
+    printf("END OF FUNCTION\n");
+    return EXIT_SUCCESS;
+}
+
+int gpl_nextto(gpl_data_t *gpl) {
+    printf("NEXTTO (");
+    gpl_get_parameters(gpl, 2);
+    printf(")%s", gpl->in_retval ? "" : "\n");
     return EXIT_SUCCESS;
 }
 
@@ -607,6 +630,40 @@ static int gpl_else(gpl_data_t *gpl) {
     return EXIT_SUCCESS;
 }
 
+static int gpl_setrecord(gpl_data_t *gpl) {
+    uint16_t depth = 0;
+    int16_t header = 0;
+    uint16_t element[MAX_SEARCH_STACK];
+    uint16_t tmp;
+    int32_t obj_name;
+
+    printf("SET RECORD: (");
+
+    gpl_preview_halfword(gpl, &tmp);
+    if (tmp > 0x8000) {
+        gpl_access_complex(gpl, &header, &depth, element, &obj_name);
+        printf(" accum = (");
+        gpl_read_number(gpl);//buf, BUF_SIZE);
+        printf("), ");
+        //smart_write_data(header, depth, element, accum);
+        return EXIT_SUCCESS;
+    }
+    if (tmp == 0) {
+        error("gpl_setrecord: need to implement party...\n");
+        return EXIT_FAILURE;
+    }
+    if (tmp < 0x8000) {
+        gpl_access_complex(gpl, &header, &depth, element, &obj_name);
+        printf("accum = (");
+        gpl_read_number(gpl);
+        printf(")");
+        error("--setrecord:I need to write depth/element/accum to list of headers!\n");
+        return EXIT_SUCCESS;
+    }
+
+    return EXIT_SUCCESS;
+}
+
 static int gpl_endif(gpl_data_t *gpl) {
     printf(" ENDIF\n");
     gpl->depth--;
@@ -616,7 +673,7 @@ static int gpl_endif(gpl_data_t *gpl) {
 static int gpl_clear_los(gpl_data_t *gpl) {
     printf(" CLEAR_LOS ( ");
     gpl_read_number(gpl);
-    printf(")%s", in_retval ? "" : "\n");
+    printf(")%s", gpl->in_retval ? "" : "\n");
 
     return EXIT_SUCCESS;
 }
@@ -624,7 +681,7 @@ static int gpl_clear_los(gpl_data_t *gpl) {
 static int gpl_nametonum(gpl_data_t *gpl) {
     printf(" NAMETONUM ( ");
     gpl_read_number(gpl);
-    printf(")%s", in_retval ? "" : "\n");
+    printf(")%s", gpl->in_retval ? "" : "\n");
 
     return EXIT_SUCCESS;
 }
@@ -632,7 +689,7 @@ static int gpl_nametonum(gpl_data_t *gpl) {
 static int gpl_numtoname(gpl_data_t *gpl) {
     printf(" NUMTONAME ( ");
     gpl_read_number(gpl);
-    printf(")%s", in_retval ? "" : "\n");
+    printf(")%s", gpl->in_retval ? "" : "\n");
 
     return EXIT_SUCCESS;
 }
@@ -643,7 +700,7 @@ static int gpl_bitsnoop(gpl_data_t *gpl) {
     printf(" & ");
     gpl_get_parameters(gpl, 1);
     printf(") == SECOND_PARAM");
-    printf(")%s", in_retval ? "" : "\n");
+    printf(")%s", gpl->in_retval ? "" : "\n");
 
     return EXIT_SUCCESS;
 }
@@ -656,8 +713,30 @@ static int gpl_clone(gpl_data_t *gpl) {
     return EXIT_SUCCESS;
 }
 
+static int gpl_ifcompare(gpl_data_t *gpl) {
+    printf(" IFIS_COMPARE ( ");
+    gpl_get_parameters(gpl, 2);
+    printf(")\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_orelse(gpl_data_t *gpl) {
+    printf(" ORELSE_COMPARE ( ");
+    gpl_read_number(gpl);//buf, BUF_SIZE);
+    printf(")\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_clearpic(gpl_data_t *gpl) {
+    printf("CLEAR PIC\n");
+
+    return EXIT_SUCCESS;
+}
+
 static int gpl_drop(gpl_data_t *gpl) {
-    if (in_retval) {
+    if (gpl->in_retval) {
         printf("DROP (");
         gpl_get_parameters(gpl, 3);
         printf(") ");
@@ -685,62 +764,190 @@ static int gpl_drop(gpl_data_t *gpl) {
     return EXIT_FAILURE;
 }
 
+static int gpl_passtime(gpl_data_t *gpl) {
+    printf("PASS TIME (");
+    gpl_read_number(gpl);
+    printf(")\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_exit_gpl(gpl_data_t *gpl) {
+    printf("EXIT_GPL ( ");
+    printf(")\n");
+
+    return EXIT_SUCCESS;
+}
+
+
+#define EQU_SEARCH (4)
+#define LT_SEARCH (5)
+#define GT_SEARCH (6)
+#define SEARCH_QUAL (0x53)
+
+enum {INT8_ID,
+      UINT8_ID,
+      INT16_ID,
+      UINT16_ID,
+      INT32_ID,
+      UINT32_ID,
+      CHAR_ID,
+      CONTAINER_ID,
+      NEXT_ID,
+      NAME_ID,
+      STRUCT_ID
+};
+
 static int gpl_search(gpl_data_t *gpl) {
-    return EXIT_FAILURE;
+    printf("SEARCH (");
+
+    gpl_read_number(gpl);
+
+    uint8_t low, high, btmp; // should these be 16 bit?
+    uint8_t field, type;
+    int16_t level = -1;
+    //int32_t temp_for;
+    gpl_get_byte(gpl, &low);
+    gpl_get_byte(gpl, &high);
+
+// multiple searches?
+    do {
+        gpl_preview_byte(gpl, &btmp);
+        if (btmp == SEARCH_QUAL) {
+            //gpl_get_byte(gpl, &btmp);
+            gpl_get_byte(gpl, &btmp);
+        }
+
+        level++;
+
+        //searchField[searchFieldLevel] = GetByte();
+        gpl_get_byte(gpl, &field);
+        //searchType = GetByte();
+        gpl_get_byte(gpl, &type);
+        printf (" FIELD ( %d ) TYPE ( %d ) ", field, type);
+        if (type >= EQU_SEARCH && type <= GT_SEARCH) {
+            switch (type) {
+                case INT8_ID:
+                case UINT8_ID:
+                case INT16_ID:
+                case UINT16_ID:
+                case INT32_ID:
+                case UINT32_ID:
+                case NAME_ID:
+                    printf(" FOR : ");
+                    //temp_for = 
+                    gpl_read_number(gpl);
+                    break;
+            }
+        }
+
+        //if (level > 0) {
+            // we need to set something from temp_for...
+        //} else {
+            // search_for is temp_for
+        //}
+        level--;
+        gpl_preview_byte(gpl, &btmp);
+        //gpl_get_byte(gpl, &btmp);
+    } while (btmp == SEARCH_QUAL);
+
+    return EXIT_SUCCESS;
 }
 
 static int gpl_getparty(gpl_data_t *gpl) {
     printf("GETPARTY ( ");
     gpl_read_number(gpl);//buf, BUF_SIZE);
-    printf(") %s", in_retval ? "" : "\n");
+    printf(") %s", gpl->in_retval ? "" : "\n");
+    return EXIT_SUCCESS;
+}
+
+static int gpl_fight(gpl_data_t *gpl) {
+    printf("FIGHT && EXIT_GPL");
+    printf("%s", gpl->in_retval ? "" : "\n");
+    return EXIT_SUCCESS;
+}
+
+static int gpl_flee(gpl_data_t *gpl) {
+    printf("FLEE ( ");
+    gpl_read_number(gpl);//buf, BUF_SIZE);
+    printf(") %s", gpl->in_retval ? "" : "\n");
     return EXIT_SUCCESS;
 }
 
 static int gpl_follow(gpl_data_t *gpl) {
     printf("FOLLOW ( ");
     gpl_get_parameters(gpl, 2);
-    printf(") %s", in_retval ? "" : "\n");
+    printf(") %s", gpl->in_retval ? "" : "\n");
     return EXIT_SUCCESS;
 }
 
 static int gpl_getyn(gpl_data_t *gpl) {
     printf("ASK_YES_NO ( ");
-    printf(") %s", in_retval ? "" : "\n");
+    printf(") %s", gpl->in_retval ? "" : "\n");
     return EXIT_SUCCESS;
 }
 
 static int gpl_give(gpl_data_t *gpl) {
     printf("GIVE ( ");
     gpl_get_parameters(gpl, 4);
-    printf(") %s", in_retval ? "" : "\n");
+    printf(") %s", gpl->in_retval ? "" : "\n");
     return EXIT_SUCCESS;
 }
 
 static int gpl_go(gpl_data_t *gpl) {
     printf("GO ( ");
     gpl_get_parameters(gpl, 2);
-    printf(") %s", in_retval ? "" : "\n");
+    printf(") %s", gpl->in_retval ? "" : "\n");
     return EXIT_SUCCESS;
 }
 
 static int gpl_goxy(gpl_data_t *gpl) {
     printf("GOXY ( ");
     gpl_get_parameters(gpl, 3);
-    printf(") %s", in_retval ? "" : "\n");
+    printf(") %s", gpl->in_retval ? "" : "\n");
     return EXIT_SUCCESS;
 }
 
 static int gpl_readorders(gpl_data_t *gpl) {
     printf("READORDERS ( ");
     gpl_read_number(gpl);
-    printf(") %s", in_retval ? "" : "\n");
+    printf(") %s", gpl->in_retval ? "" : "\n");
     return EXIT_SUCCESS;
 }
 
 static int gpl_setother(gpl_data_t *gpl) {
     printf("SET_OTHER1 = ");
     gpl_read_number(gpl);
-    printf(")%s", in_retval ? "" : "\n");
+    printf(")%s", gpl->in_retval ? "" : "\n");
+
+    return EXIT_SUCCESS;
+}
+
+#define MAXMENU (24)
+
+static int gpl_menu(gpl_data_t *gpl) {
+    int items = 0;
+    uint8_t b;
+
+    printf("MENU ( name = {");
+    gpl_read_number(gpl);//buf, BUF_SIZE);
+    printf("} )\n");
+
+    while ((gpl_preview_byte(gpl, &b) == EXIT_SUCCESS && b != 0x4A) && (items <= MAXMENU)) {
+        printf("  MENU_ENTRY ( TEXT (");
+        gpl_read_number(gpl);
+        printf(" ) FUNCTION (");
+        //menu = (char*) gpl_global_big_numptr;
+        gpl_read_number(gpl); // function
+        printf(") IF (");
+        gpl_read_number(gpl); // address
+        printf(" == 1)) \n");
+        items++;
+    }
+    gpl_get_byte(gpl, &b);  // get rid of the mend...
+
+    //lprintf("gpl.narrate_show() --narrate_wait for input\n");
+    printf("MENU_END\n");
 
     return EXIT_SUCCESS;
 }
@@ -749,7 +956,31 @@ static int gpl_setthing(gpl_data_t *gpl) {
     // 1st char , second is item index
     printf("SET_THING ( ");
     gpl_get_parameters(gpl, 2);
-    printf(")%s", in_retval ? "" : "\n");
+    printf(")%s", gpl->in_retval ? "" : "\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_print_string(gpl_data_t *gpl) {
+    printf("PRINT_STRING ( ");
+    gpl_get_parameters(gpl, 2);
+    printf(")%s", gpl->in_retval ? "" : "\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_print_number(gpl_data_t *gpl) {
+    printf("PRINT_NUMBER ( ");
+    gpl_get_parameters(gpl, 2);
+    printf(")%s", gpl->in_retval ? "" : "\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_printnl(gpl_data_t *gpl) {
+    printf("PRINT_NEWLINE ( ");
+    //gpl_get_parameters(gpl, 2);
+    printf(")%s", gpl->in_retval ? "" : "\n");
 
     return EXIT_SUCCESS;
 }
@@ -757,7 +988,15 @@ static int gpl_setthing(gpl_data_t *gpl) {
 static int gpl_rand(gpl_data_t *gpl) {
     printf("RAND ( ");
     gpl_read_number(gpl);
-    printf(")%s", in_retval ? "" : "\n");
+    printf(")%s", gpl->in_retval ? "" : "\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_show_pic(gpl_data_t *gpl) {
+    printf("SHOW_PIC ( ");
+    gpl_read_number(gpl);
+    printf(")%s", gpl->in_retval ? "" : "\n");
 
     return EXIT_SUCCESS;
 }
@@ -765,7 +1004,15 @@ static int gpl_rand(gpl_data_t *gpl) {
 static int gpl_statroll(gpl_data_t *gpl) {
     printf("STAT_ROLL ( ");
     gpl_get_parameters(gpl, 3);
-    printf(")%s", in_retval ? "" : "\n");
+    printf(")%s", gpl->in_retval ? "" : "\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_string_compare(gpl_data_t *gpl) {
+    printf("STRING COMPARE ( ");
+    gpl_get_parameters(gpl, 2);
+    printf(")%s", gpl->in_retval ? "" : "\n");
 
     return EXIT_SUCCESS;
 }
@@ -773,7 +1020,79 @@ static int gpl_statroll(gpl_data_t *gpl) {
 static int gpl_take(gpl_data_t *gpl) {
     printf("TAKE ( ");
     gpl_get_parameters(gpl, 4);
-    printf(")%s", in_retval ? "" : "\n");
+    printf(")%s", gpl->in_retval ? "" : "\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_sound(gpl_data_t *gpl) {
+    printf("SOUND ( ");
+    gpl_get_parameters(gpl, 1);
+    printf(")%s", gpl->in_retval ? "" : "\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_zero(gpl_data_t *gpl) {
+    printf("EXIT_GPL ( ");
+    //gpl_read_number(gpl);//buf, BUF_SIZE);
+    printf(") \n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_long_div_eq(gpl_data_t *gpl) {
+    printf("LONG_DIV_EQ ( ");
+    gpl_get_parameters(gpl, 2);
+    printf(") IE: param0 /= param1 \n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_byte_dec(gpl_data_t *gpl) {
+    printf("BYTE_DEC ( ");
+    gpl_get_parameters(gpl, 1);
+    printf(") \n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_word_dec(gpl_data_t *gpl) {
+    printf("WORD_DEC ( ");
+    gpl_get_parameters(gpl, 1);
+    printf(") \n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_long_dec(gpl_data_t *gpl) {
+    printf("LONG_DEC ( ");
+    gpl_get_parameters(gpl, 1);
+    printf(") \n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_byte_inc(gpl_data_t *gpl) {
+    printf("BYTE_INC ( ");
+    gpl_get_parameters(gpl, 1);
+    printf(") \n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_word_inc(gpl_data_t *gpl) {
+    printf("WORD_INC ( ");
+    gpl_get_parameters(gpl, 1);
+    printf(") \n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_long_inc(gpl_data_t *gpl) {
+    printf("LONG_INC ( ");
+    gpl_get_parameters(gpl, 1);
+    printf(") \n");
 
     return EXIT_SUCCESS;
 }
@@ -834,14 +1153,21 @@ static int gpl_pdamage(gpl_data_t *gpl) {
 static int gpl_get_status(gpl_data_t *gpl) {
     printf("GET_STATUS (");
     gpl_read_number(gpl);
-    printf(")%s", in_retval ? "" : "\n");
+    printf(")%s", gpl->in_retval ? "" : "\n");
     return EXIT_SUCCESS;
 }
 
 static int gpl_get_los(gpl_data_t *gpl) {
     printf("GET_LOS (");
     gpl_get_parameters(gpl, 3);
-    printf(")%s", in_retval ? "" : "\n");
+    printf(")%s", gpl->in_retval ? "" : "\n");
+    return EXIT_SUCCESS;
+}
+
+static int gpl_call_local(gpl_data_t *gpl) {
+    printf("CALL_LOCAL_FUNCTION (");
+    gpl_get_parameters(gpl, 1);
+    printf(")%s", gpl->in_retval ? "" : "\n");
     return EXIT_SUCCESS;
 }
 
@@ -852,20 +1178,25 @@ static int gpl_call_global(gpl_data_t *gpl) {
     return EXIT_SUCCESS;
 }
 
-static int gpl_request(gpl_data_t *gpl) {
-    printf("REQUEST (");
-    gpl_get_parameters(gpl, 4);
-    printf(")\n");
+static int gpl_local_ret(gpl_data_t *gpl) {
+    printf("RETURN FROM LOCAL FUNCTION\n");
     return EXIT_SUCCESS;
 }
 
+static int gpl_compare(gpl_data_t *gpl) {
+    printf("COMPARE: ");
+    load_accum(gpl);
+    gpl->depth++;
+    printf("\n");
+    return EXIT_SUCCESS;
+}
 
 static int gpl_load_variable(gpl_data_t *gpl) {
     int8_t extended = 0;
     uint8_t datatype, b;
     uint16_t varnum;
 
-    gpl_load_accum(gpl);
+    load_accum(gpl);
 
     gpl_get_byte(gpl, &datatype);
     datatype &= 0x7F;
@@ -891,6 +1222,14 @@ static int gpl_load_variable(gpl_data_t *gpl) {
     return EXIT_SUCCESS;
 }
 
+static int gpl_request(gpl_data_t *gpl) {
+    printf("REQUEST (");
+    gpl_get_parameters(gpl, 4);
+    printf(")\n");
+    return EXIT_SUCCESS;
+}
+
+
 static int gpl_tport(gpl_data_t *gpl) {
     printf("TELEPORT (everything/part) ( ");
     gpl_get_parameters(gpl, 5);
@@ -908,6 +1247,35 @@ static int gpl_tport(gpl_data_t *gpl) {
     }
     */
     printf(")\n");
+    return EXIT_SUCCESS;
+}
+
+static int gpl_cmpend(gpl_data_t *gpl) {
+    printf("CMPEND\n");
+    gpl->depth--;
+    return EXIT_SUCCESS;
+}
+
+static int gpl_wait(gpl_data_t *gpl) {
+    printf("WAIT (");
+    gpl_read_number(gpl);
+    printf(")%s", gpl->in_retval ? "" : "\n");
+    return EXIT_SUCCESS;
+}
+
+static int gpl_while(gpl_data_t *gpl) {
+    printf("WHILE (");
+    gpl_get_parameters(gpl, 1);
+    printf(")\n");
+    gpl->depth++;
+    return EXIT_SUCCESS;
+}
+
+static int gpl_wend(gpl_data_t *gpl) {
+    printf("WHILE END (");
+    gpl_read_number(gpl);
+    printf(")\n");
+    gpl->depth--;
     return EXIT_SUCCESS;
 }
 
@@ -972,22 +1340,71 @@ static int gpl_notinlos_trigger(gpl_data_t *gpl) {
     return gpl_template(gpl, "CREATE_NOTINLOS_TRIGGER", 4);
 }
 
+static int gpl_type_op_equal(gpl_data_t *gpl, const char *type, const char *op) {
+    printf("%s (", type);
+    gpl_get_parameters(gpl, 1);
+    printf(" %s ", op);
+    gpl_get_parameters(gpl, 1);
+    printf(")\n");
+    return EXIT_SUCCESS;
+}
+
+static int gpl_byte_plus_equal(gpl_data_t *gpl) {
+    return gpl_type_op_equal(gpl, "BYTE", "+=");
+}
+
+static int gpl_byte_minus_equal(gpl_data_t *gpl) {
+    return gpl_type_op_equal(gpl, "BYTE", "-=");
+}
+
+static int gpl_byte_times_equal(gpl_data_t *gpl) {
+    return gpl_type_op_equal(gpl, "BYTE", "*=");
+}
+
+static int gpl_byte_div_equal(gpl_data_t *gpl) {
+    return gpl_type_op_equal(gpl, "BYTE", "/=");
+}
+
+static int gpl_word_plus_equal(gpl_data_t *gpl) {
+    return gpl_type_op_equal(gpl, "WORD", "+=");
+}
+
+static int gpl_word_minus_equal(gpl_data_t *gpl) {
+    return gpl_type_op_equal(gpl, "WORD", "-=");
+}
+
+static int gpl_word_times_equal(gpl_data_t *gpl) {
+    return gpl_type_op_equal(gpl, "WORD", "*=");
+}
+
+static int gpl_word_div_equal(gpl_data_t *gpl) {
+    return gpl_type_op_equal(gpl, "WORD", "/=");
+}
+
+static int gpl_long_plus_equal(gpl_data_t *gpl) {
+    return gpl_type_op_equal(gpl, "LONG", "+=");
+}
+
+static int gpl_long_minus_equal(gpl_data_t *gpl) {
+    return gpl_type_op_equal(gpl, "LONG", "-=");
+}
+
 static int gpl_range(gpl_data_t *gpl) {
     printf("RANGE (");
     gpl_get_parameters(gpl, 2);
-    printf(")%s", in_retval ? "" : "\n");
+    printf(")%s", gpl->in_retval ? "" : "\n");
     return EXIT_SUCCESS;
 }
 
 static gpl_command_t gpl_commands[] = {
-    { gpl_unknown, "gpl zero" }, // 0x0
-    { gpl_unknown, "gpl long divide equal" }, // 0x1
-    { gpl_unknown, "gpl byte dec" }, // 0x2
-    { gpl_unknown, "gpl word dec" }, // 0x3
-    { gpl_unknown, "gpl long dec" }, // 0x4
-    { gpl_unknown, "gpl byte inc" }, // 0x5
-    { gpl_unknown, "gpl word inc" }, // 0x6
-    { gpl_unknown, "gpl long inc" }, // 0x7
+    { gpl_zero, "gpl zero" }, // 0x0
+    { gpl_long_div_eq, "gpl long divide equal" }, // 0x1
+    { gpl_byte_dec, "gpl byte dec" }, // 0x2
+    { gpl_word_dec, "gpl word dec" }, // 0x3
+    { gpl_long_dec, "gpl long dec" }, // 0x4
+    { gpl_byte_inc, "gpl byte inc" }, // 0x5
+    { gpl_word_inc, "gpl word inc" }, // 0x6
+    { gpl_long_inc, "gpl long inc" }, // 0x7
     { gpl_hunt, "gpl hunt" }, // 0x8
     { gpl_getxy, "gpl getxy" }, // 0x9
     { gpl_string_copy, "gpl string copy" }, // 0xA
@@ -999,14 +1416,14 @@ static gpl_command_t gpl_commands[] = {
     { gpl_get_los, "gpl getlos" }, // 0x10
     { gpl_unknown, "gpl long times equal" }, // 0x11
     { gpl_unknown, "gpl jump" }, // 0x12
-    { gpl_unknown, "gpl local sub" }, // 0x13
+    { gpl_call_local, "gpl local sub" }, // 0x13
     { gpl_call_global, "gpl global sub" }, // 0x14
-    { gpl_unknown, "gpl local ret" }, // 0x15
+    { gpl_local_ret, "gpl local ret" }, // 0x15
     { gpl_load_variable, "gpl load variable" }, // 0x16
-    { gpl_unknown, "gpl compare" }, // 0x17
+    { gpl_compare, "gpl compare" }, // 0x17
     { gpl_load_accum, "gpl load accum" }, // 0x18
-    { gpl_unknown, "gpl global ret" }, // 0x19
-    { gpl_unknown, "gpl nextto" }, // 0x1A
+    { gpl_global_ret, "gpl global ret" }, // 0x19
+    { gpl_nextto, "gpl nextto" }, // 0x1A
     { gpl_inlos_trigger, "gpl inlostrigger" }, // 0x1B
     { gpl_notinlos_trigger, "gpl notinlostrigger" }, // 0x1C
     { gpl_clear_los, "gpl clear los" }, // 0x1D
@@ -1019,22 +1436,22 @@ static gpl_command_t gpl_commands[] = {
     { gpl_unknown, "gpl shop" }, // 0x24
     { gpl_clone, "gpl clone" }, // 0x25
     { gpl_unknown, "gpl default" }, // 0x26
-    { gpl_unknown, "gpl ifcompare" }, // 0x27
+    { gpl_ifcompare, "gpl ifcompare" }, // 0x27
     { gpl_unknown, "gpl trace var" }, // 0x28
-    { gpl_unknown, "gpl orelse" }, // 0x29
-    { gpl_unknown, "gpl clearpic" }, // 0x2A
+    { gpl_orelse, "gpl orelse" }, // 0x29
+    { gpl_clearpic, "gpl clearpic" }, // 0x2A
     { gpl_unknown, "gpl continue" }, // 0x2B
     { gpl_unknown, "gpl log" }, // 0x2C
     { gpl_unknown, "gpl damage" }, // 0x2D
     { gpl_unknown, "gpl source line num" }, // 0x2E
     { gpl_drop, "gpl drop" }, // 0x2F
-    { gpl_unknown, "gpl passtime" }, // 0x30
-    { gpl_unknown, "gpl exit gpl" }, // 0x31
+    { gpl_passtime, "gpl passtime" }, // 0x30
+    { gpl_exit_gpl, "gpl exit gpl" }, // 0x31
     { gpl_unknown, "gpl fetch" }, // 0x32
     { gpl_search, "gpl search" }, // 0x33
     { gpl_getparty, "gpl getparty" }, // 0x34
-    { gpl_unknown, "gpl fight" }, // 0x35
-    { gpl_unknown, "gpl flee" }, // 0x36
+    { gpl_fight, "gpl fight" }, // 0x35
+    { gpl_flee, "gpl flee" }, // 0x36
     { gpl_follow, "gpl follow" }, // 0x37
     { gpl_getyn, "gpl getyn" }, // 0x38
     { gpl_give, "gpl give" }, // 0x39
@@ -1044,7 +1461,7 @@ static gpl_command_t gpl_commands[] = {
     { gpl_readorders, "gpl readorders" }, // 0x3D
     { gpl_if, "gpl if" }, // 0x3E
     { gpl_else, "gpl else" }, // 0x3F
-    { gpl_unknown, "gpl setrecord" }, // 0x40
+    { gpl_setrecord, "gpl setrecord" }, // 0x40
     { gpl_setother, "gpl setother" }, // 0x41
     { gpl_unknown, "gpl input string" }, // 0x42
     { gpl_unknown, "gpl input number" }, // 0x43
@@ -1052,35 +1469,35 @@ static gpl_command_t gpl_commands[] = {
     { gpl_unknown, "gpl joinparty" }, // 0x45
     { gpl_unknown, "gpl leaveparty" }, // 0x46
     { gpl_unknown, "gpl lockdoor" }, // 0x47
-    { gpl_unknown, "gpl menu" }, // 0x48
+    { gpl_menu, "gpl menu" }, // 0x48
     { gpl_setthing, "gpl setthing" }, // 0x49
     { gpl_unknown, "gpl default" }, // 0x4A
     { gpl_unknown, "gpl local sub trace" }, // 0x4B
     { gpl_unknown, "gpl default" }, // 0x4C
     { gpl_unknown, "gpl default" }, // 0x4D
     { gpl_unknown, "gpl default" }, // 0x4E
-    { gpl_unknown, "gpl print string" }, // 0x4F
-    { gpl_unknown, "gpl print number" }, // 0x50
-    { gpl_unknown, "gpl printnl" }, // 0x51
+    { gpl_print_string, "gpl print string" }, // 0x4F
+    { gpl_print_number, "gpl print number" }, // 0x50
+    { gpl_printnl, "gpl printnl" }, // 0x51
     { gpl_rand, "gpl rand" }, // 0x52
     { gpl_unknown, "gpl default" }, // 0x53
-    { gpl_unknown, "gpl showpic" }, // 0x54
+    { gpl_show_pic, "gpl showpic" }, // 0x54
     { gpl_unknown, "gpl default" }, // 0x55
     { gpl_unknown, "gpl default" }, // 0x56
     { gpl_unknown, "gpl default" }, // 0x57
     { gpl_unknown, "gpl skillroll" }, // 0x58
     { gpl_statroll, "gpl statroll" }, // 0x59
-    { gpl_unknown, "gpl string compare" }, // 0x5A
+    { gpl_string_compare, "gpl string compare" }, // 0x5A
     { gpl_unknown, "gpl match string" }, // 0x5B
     { gpl_take, "gpl take" }, // 0x5C
-    { gpl_unknown, "gpl sound" }, // 0x5D
+    { gpl_sound, "gpl sound" }, // 0x5D
     { gpl_tport, "gpl tport" }, // 0x5E
     { gpl_unknown, "gpl music" }, // 0x5F
     { gpl_unknown, "gpl default" }, // 0x60
-    { gpl_unknown, "gpl cmpend" }, // 0x61
-    { gpl_unknown, "gpl wait" }, // 0x62
-    { gpl_unknown, "gpl while" }, // 0x63
-    { gpl_unknown, "gpl wend" }, // 0x64
+    { gpl_cmpend, "gpl cmpend" }, // 0x61
+    { gpl_wait, "gpl wait" }, // 0x62
+    { gpl_while, "gpl while" }, // 0x63
+    { gpl_wend, "gpl wend" }, // 0x64
     { gpl_attack_trigger, "gpl attacktrigger" }, // 0x65
     { gpl_look_trigger, "gpl looktrigger" }, // 0x66
     { gpl_endif, "gpl endif" }, // 0x67
@@ -1098,16 +1515,16 @@ static gpl_command_t gpl_commands[] = {
     { gpl_unknown, "gpl default" }, // 0x73
     { gpl_unknown, "gpl default" }, // 0x74
     { gpl_unknown, "gpl default" }, // 0x75
-    { gpl_unknown, "gpl byte plus equal" }, // 0x76
-    { gpl_unknown, "gpl byte minus equal" }, // 0x77
-    { gpl_unknown, "gpl byte times equal" }, // 0x78
-    { gpl_unknown, "gpl byte divide equal" }, // 0x79
-    { gpl_unknown, "gpl word plus equal" }, // 0x7A
-    { gpl_unknown, "gpl word minus equal" }, // 0x7B
-    { gpl_unknown, "gpl word times equal" }, // 0x7C
-    { gpl_unknown, "gpl word divide equal" }, // 0x7D
-    { gpl_unknown, "gpl long plus equal" }, // 0x7E
-    { gpl_unknown, "gpl long minus equal" }, // 0x7F
+    { gpl_byte_plus_equal, "gpl byte plus equal" }, // 0x76
+    { gpl_byte_minus_equal, "gpl byte minus equal" }, // 0x77
+    { gpl_byte_times_equal, "gpl byte times equal" }, // 0x78
+    { gpl_byte_div_equal, "gpl byte divide equal" }, // 0x79
+    { gpl_word_plus_equal, "gpl word plus equal" }, // 0x7A
+    { gpl_word_minus_equal, "gpl word minus equal" }, // 0x7B
+    { gpl_word_times_equal, "gpl word times equal" }, // 0x7C
+    { gpl_word_div_equal, "gpl word divide equal" }, // 0x7D
+    { gpl_long_plus_equal, "gpl long plus equal" }, // 0x7E
+    { gpl_long_minus_equal, "gpl long minus equal" }, // 0x7F
     { gpl_range, "gpl get range" }, // 0x80
 };
 
@@ -1158,10 +1575,10 @@ extern int gff_gpl_parse(uint8_t *gpl, const size_t len, gff_gpl_transformer_t *
     }   
     */
     uint8_t command;
-    gpl_get_byte(&gd, &command);
-    while (gd.gpl < gd.end && gpl_execute_func(&gd, command) == EXIT_SUCCESS) {
+    do {
         gpl_get_byte(&gd, &command);
-    }
+        //printf("command = 0x%x\n", command);
+    } while (gd.gpl < gd.end && gpl_execute_func(&gd, command) == EXIT_SUCCESS);
 
     if (gd.gpl < gd.end) {
         printf("FAILED TO PARSE COMMAND: 0x%x\n", command);
@@ -1217,7 +1634,7 @@ extern int gff_gpl_parse(uint8_t *gpl, const size_t len, gff_gpl_transformer_t *
 }
 
 static void gpl_retval(gpl_data_t *gpl, uint8_t cmd) {
-    in_retval = 1;
+    gpl->in_retval = 1;
     //This is a bit of a precarious situation because we are inside the calculation
     //of an accum. So only certain operations will work here.
     switch(cmd) {
@@ -1238,13 +1655,14 @@ static void gpl_retval(gpl_data_t *gpl, uint8_t cmd) {
         case 0x49:// setthing
         case 0x52:// rand
         case 0x5a:// string compare
+        case 0x5c:// take
         case 0x59:// statroll
         case 0x80:// range
             // The above look good.
             // These are okay
             break;
         case 0x1a:// global return?
-            error("false -- global return, this is probably wrong.\n");
+            //error("false -- global return, this is probably wrong.\n");
             break;
         default:
             error ("unrecognized command in a RETVAL: 0x%x\n", cmd);
@@ -1258,7 +1676,7 @@ static void gpl_retval(gpl_data_t *gpl, uint8_t cmd) {
         printf("RETVAL: 0x%x\n", cmd);fflush(stdout);
         exit(1);
     }
-    in_retval = 0;
+    gpl->in_retval = 0;
     //print_vars(0);
 }
 
