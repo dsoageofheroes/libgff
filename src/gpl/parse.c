@@ -250,7 +250,7 @@ static void gpl_write_complex_var(gpl_data_t *gpl) {
 
     memset(element, 0x0, sizeof(uint16_t) * MAX_SEARCH_STACK);
  
-    if (gpl_access_complex(gpl, &header, &depth, element, &obj_name) == 1) {
+    if (gpl_access_complex(gpl, &header, &depth, element, &obj_name) == EXIT_SUCCESS) {
         //lprintf("--complex_write: I need to write 'accum' to header (%d) at depth (%d)\n", header, depth);
         //lprintf("print (\"writing complex: header=\", %d, \"depth = \", %d, \"obj_name = \", %d)", header, depth, obj_name);
         //smart_write_data(header, depth, element, data);
@@ -649,15 +649,20 @@ static int gpl_setrecord(gpl_data_t *gpl) {
         return EXIT_SUCCESS;
     }
     if (tmp == 0) {
-        error("gpl_setrecord: need to implement party...\n");
-        return EXIT_FAILURE;
+        //error("gpl_setrecord: need to implement party...\n");
+        gpl_access_complex(gpl, &header, &depth, element, &obj_name);
+        printf(" PARTY accum = (");
+        gpl_read_number(gpl);//buf, BUF_SIZE);
+        printf(")\n");
+        //smart_write_data(header, depth, element, accum);
+        return EXIT_SUCCESS;
     }
     if (tmp < 0x8000) {
         gpl_access_complex(gpl, &header, &depth, element, &obj_name);
         printf("accum = (");
         gpl_read_number(gpl);
         printf(")");
-        error("--setrecord:I need to write depth/element/accum to list of headers!\n");
+        //smart_write_data(header, depth, element, accum);
         return EXIT_SUCCESS;
     }
 
@@ -705,6 +710,13 @@ static int gpl_bitsnoop(gpl_data_t *gpl) {
     return EXIT_SUCCESS;
 }
 
+static int gpl_award(gpl_data_t *gpl) {
+    printf("AWARD: ");
+    gpl_get_parameters(gpl, 2);
+    printf("%s", gpl->in_retval ? "" : "\n");
+    return EXIT_SUCCESS;
+}
+
 static int gpl_clone(gpl_data_t *gpl) {
     printf(" CLONE ( ");
     gpl_get_parameters(gpl, 6);
@@ -735,12 +747,37 @@ static int gpl_clearpic(gpl_data_t *gpl) {
     return EXIT_SUCCESS;
 }
 
+static int gpl_continue(gpl_data_t *gpl) {
+    printf("PRESENT CONTINUE DIALOG BUTTON\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_log(gpl_data_t *gpl) {
+    char *tmp;
+
+    printf("LOG:");
+    gff_gpl_read_text(gpl, &tmp);//), "Unable to read immediate string in GPL.");
+    printf(" '%s'\n", tmp);
+    printf("\n");
+
+    free(tmp);
+    return EXIT_SUCCESS;
+}
+
+static int gpl_damage(gpl_data_t *gpl) {
+    printf("DAMAGE: ");
+    gpl_get_parameters(gpl, 2);
+    printf("\n");
+
+    return EXIT_SUCCESS;
+}
+
 static int gpl_drop(gpl_data_t *gpl) {
+    printf("DROP: ");
+    gpl_get_parameters(gpl, 3);
     if (gpl->in_retval) {
-        printf("DROP (");
-        gpl_get_parameters(gpl, 3);
-        printf(") ");
-        return EXIT_SUCCESS;
+        printf("\n");
     }
 
     /*
@@ -761,7 +798,7 @@ static int gpl_drop(gpl_data_t *gpl) {
     lprintf("end -- drop\n");
     */
 
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
 }
 
 static int gpl_passtime(gpl_data_t *gpl) {
@@ -779,6 +816,13 @@ static int gpl_exit_gpl(gpl_data_t *gpl) {
     return EXIT_SUCCESS;
 }
 
+static int gpl_fetch(gpl_data_t *gpl) {
+    printf("FETCH:  ");
+    gpl_get_parameters(gpl, 2);
+    printf("\n");
+
+    return EXIT_SUCCESS;
+}
 
 #define EQU_SEARCH (4)
 #define LT_SEARCH (5)
@@ -918,6 +962,30 @@ static int gpl_readorders(gpl_data_t *gpl) {
 static int gpl_setother(gpl_data_t *gpl) {
     printf("SET_OTHER1 = ");
     gpl_read_number(gpl);
+    printf(")%s", gpl->in_retval ? "" : "\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_input_string(gpl_data_t *gpl) {
+    printf("INPUT STRING( ");
+    gpl_get_parameters(gpl, 1);
+    printf(")%s", gpl->in_retval ? "" : "\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_input_number(gpl_data_t *gpl) {
+    printf("INPUT NUMBER (");
+    gpl_get_parameters(gpl, 1);
+    printf(")%s", gpl->in_retval ? "" : "\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_input_money(gpl_data_t *gpl) {
+    printf("INPUT MONEY (");
+    gpl_get_parameters(gpl, 1);
     printf(")%s", gpl->in_retval ? "" : "\n");
 
     return EXIT_SUCCESS;
@@ -1150,6 +1218,20 @@ static int gpl_pdamage(gpl_data_t *gpl) {
     return EXIT_SUCCESS;
 }
 
+static int gpl_change_money(gpl_data_t *gpl) {
+    printf("CHANGE MONEY: ");
+    gpl_read_number(gpl);
+    printf("%s", gpl->in_retval ? "" : "\n");
+
+    return EXIT_SUCCESS;
+}
+
+static int gpl_toggle_accum(gpl_data_t *gpl) {
+    printf("TOGGLE ACCUM()");
+    printf("%s", gpl->in_retval ? "" : "\n");
+    return EXIT_SUCCESS;
+}
+
 static int gpl_get_status(gpl_data_t *gpl) {
     printf("GET_STATUS (");
     gpl_read_number(gpl);
@@ -1229,6 +1311,12 @@ static int gpl_request(gpl_data_t *gpl) {
     return EXIT_SUCCESS;
 }
 
+static int gpl_shop(gpl_data_t *gpl) {
+    printf("SHOP: ");
+    gpl_read_number(gpl);
+    printf("\n");
+    return EXIT_SUCCESS;
+}
 
 static int gpl_tport(gpl_data_t *gpl) {
     printf("TELEPORT (everything/part) ( ");
@@ -1389,6 +1477,10 @@ static int gpl_long_minus_equal(gpl_data_t *gpl) {
     return gpl_type_op_equal(gpl, "LONG", "-=");
 }
 
+static int gpl_long_times_equal(gpl_data_t *gpl) {
+    return gpl_type_op_equal(gpl, "LONG", "*=");
+}
+
 static int gpl_range(gpl_data_t *gpl) {
     printf("RANGE (");
     gpl_get_parameters(gpl, 2);
@@ -1409,12 +1501,12 @@ static gpl_command_t gpl_commands[] = {
     { gpl_getxy, "gpl getxy" }, // 0x9
     { gpl_string_copy, "gpl string copy" }, // 0xA
     { gpl_pdamage, "gpl p damage" }, // 0xB
-    { gpl_unknown, "gpl changemoney" }, // 0xC
+    { gpl_change_money, "gpl changemoney" }, // 0xC
     { gpl_unknown, "gpl setvar" }, // 0xD
-    { gpl_unknown, "gpl toggle accum" }, // 0xE
+    { gpl_toggle_accum, "gpl toggle accum" }, // 0xE
     { gpl_get_status, "gpl getstatus" }, // 0xF
     { gpl_get_los, "gpl getlos" }, // 0x10
-    { gpl_unknown, "gpl long times equal" }, // 0x11
+    { gpl_long_times_equal, "gpl long times equal" }, // 0x11
     { gpl_unknown, "gpl jump" }, // 0x12
     { gpl_call_local, "gpl local sub" }, // 0x13
     { gpl_call_global, "gpl global sub" }, // 0x14
@@ -1430,24 +1522,24 @@ static gpl_command_t gpl_commands[] = {
     { gpl_nametonum, "gpl nametonum" }, // 0x1E
     { gpl_numtoname, "gpl numtoname" }, // 0x1F
     { gpl_bitsnoop, "gpl bitsnoop" }, // 0x20
-    { gpl_unknown, "gpl award" }, // 0x21
+    { gpl_award, "gpl award" }, // 0x21
     { gpl_request, "gpl request" }, // 0x22
     { gpl_unknown, "gpl source trace" }, // 0x23
-    { gpl_unknown, "gpl shop" }, // 0x24
+    { gpl_shop, "gpl shop" }, // 0x24
     { gpl_clone, "gpl clone" }, // 0x25
     { gpl_unknown, "gpl default" }, // 0x26
     { gpl_ifcompare, "gpl ifcompare" }, // 0x27
     { gpl_unknown, "gpl trace var" }, // 0x28
     { gpl_orelse, "gpl orelse" }, // 0x29
     { gpl_clearpic, "gpl clearpic" }, // 0x2A
-    { gpl_unknown, "gpl continue" }, // 0x2B
-    { gpl_unknown, "gpl log" }, // 0x2C
-    { gpl_unknown, "gpl damage" }, // 0x2D
+    { gpl_continue, "gpl continue" }, // 0x2B
+    { gpl_log, "gpl log" }, // 0x2C
+    { gpl_damage, "gpl damage" }, // 0x2D
     { gpl_unknown, "gpl source line num" }, // 0x2E
     { gpl_drop, "gpl drop" }, // 0x2F
     { gpl_passtime, "gpl passtime" }, // 0x30
     { gpl_exit_gpl, "gpl exit gpl" }, // 0x31
-    { gpl_unknown, "gpl fetch" }, // 0x32
+    { gpl_fetch, "gpl fetch" }, // 0x32
     { gpl_search, "gpl search" }, // 0x33
     { gpl_getparty, "gpl getparty" }, // 0x34
     { gpl_fight, "gpl fight" }, // 0x35
@@ -1463,9 +1555,9 @@ static gpl_command_t gpl_commands[] = {
     { gpl_else, "gpl else" }, // 0x3F
     { gpl_setrecord, "gpl setrecord" }, // 0x40
     { gpl_setother, "gpl setother" }, // 0x41
-    { gpl_unknown, "gpl input string" }, // 0x42
-    { gpl_unknown, "gpl input number" }, // 0x43
-    { gpl_unknown, "gpl input money" }, // 0x44
+    { gpl_input_string, "gpl input string" }, // 0x42
+    { gpl_input_number, "gpl input number" }, // 0x43
+    { gpl_input_money, "gpl input money" }, // 0x44
     { gpl_unknown, "gpl joinparty" }, // 0x45
     { gpl_unknown, "gpl leaveparty" }, // 0x46
     { gpl_unknown, "gpl lockdoor" }, // 0x47
