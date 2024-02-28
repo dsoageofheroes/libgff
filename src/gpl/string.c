@@ -36,9 +36,9 @@ extern int gff_gpl_read_text(gpl_data_t *gpl, char **ret) {
             return EXIT_SUCCESS;
         case STRING_COMPRESSED:
             gff_gpl_get_byte(gpl, &b);
-            read_compressed(gpl);
+            *ret = read_compressed(gpl);
             //printf("STRING_COMPRESSED: gpl_global_string = '%s'\n", gff_gpl_global_string);
-            *ret = (char*)gff_gpl_global_string;
+            //*ret = (char*)gff_gpl_global_string;
             return EXIT_SUCCESS;
     }
     return EXIT_FAILURE;
@@ -82,6 +82,6 @@ static char* read_compressed(gpl_data_t *gpl) {
 
 static char tempstr[1024];
 static char* introduce() {
-    sprintf(tempstr, "I'm \" .. gpl.get_active_name() .. \"");
+    sprintf(tempstr, "I'm \" GET_ACTIVE_NAME() \"");
     return tempstr;
 }

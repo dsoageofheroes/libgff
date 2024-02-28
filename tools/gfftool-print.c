@@ -171,19 +171,13 @@ static void print_rdat(gff_file_t *gff, unsigned int id) {
 }
 
 static void print_monr(gff_file_t *gff, unsigned int id) {
-    gff_chunk_header_t chunk;
     gff_monster_list_t *mon = NULL;
-    int num_monsters;
+    size_t num_monsters;
 
-    gff_read_monster_list(gff, id, &mon);
-    if (gff_find_chunk_header(gff, &chunk, GFF_MONR, id) ) {
-        printf("Unable to read MONR header\n");
-        return;
-    }
+    gff_load_monster_list(gff, id, &mon, &num_monsters);
 
-    printf("monster list #%d is in region %d\n", id, mon->region);
+    printf("monster list #%d is in region %d, and has %ld monster types.\n", id, mon->region, num_monsters);
 
-    num_monsters = (chunk.length - sizeof(int16_t)) / sizeof(gff_monster_entry_t);
     for (int i = 0; i < num_monsters; i++) {
         printf("    %d: id: %d level: %d\n", i, mon->monsters[i].id, mon->monsters[i].level);
     }
@@ -464,7 +458,7 @@ static void print_etab(gff_file_t *gff, uint32_t id) {
     gff_etab_object_t *etabs;
     uint32_t amt;
 
-    if (gff_read_etab(gff, id, &etabs, &amt)) {
+    if (gff_load_etab(gff, id, &etabs, &amt)) {
         printf("Can't read ETAB.\n");
         return;
     }
@@ -717,7 +711,7 @@ static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
             break;
     }
 
-    ids = gff_get_id_list(gff, entry->chunk_type, &len);
+    gff_load_id_list(gff, entry->chunk_type, &ids, &len);
 
     for (int i = 0; i < len; i++) {
 

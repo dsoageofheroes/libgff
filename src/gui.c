@@ -35,7 +35,7 @@ static int load_frame_from_gff(const int res_id, gff_frame_t *frame) {
 
 extern int gff_read_font(gff_file_t *f, int res_id, gff_font_t **font) {
     return 
-        gff_read_raw_allocate(f, GFF_FONT, res_id, (uint8_t**)font)
+        gff_load_raw(f, GFF_FONT, res_id, (uint8_t**)font)
         ? EXIT_SUCCESS
         : EXIT_FAILURE;
 }
@@ -49,7 +49,7 @@ extern int gff_read_ebox(gff_file_t *f, int res_id, gff_ebox_t *ebox) {
 
 extern int gff_read_window(gff_file_t *f, int res_id, gff_window_t **win) {
     return
-        gff_read_raw_allocate(f, GFF_WIND, res_id, (uint8_t**)win)
+        gff_load_raw(f, GFF_WIND, res_id, (uint8_t**)win)
         ? EXIT_SUCCESS
         : EXIT_FAILURE;
 }

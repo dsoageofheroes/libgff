@@ -36,7 +36,8 @@ void test_text(void) {
     TEST_ASSERT_NOT_NULL(f);
     TS(gff_open(f, "ds1/RESOURCE.GFF"));
 
-    unsigned int* ids = gff_get_id_list(f, GFF_TEXT, &len);
+    unsigned int* ids;
+    gff_load_id_list(f, GFF_TEXT, &ids, &len);
     for (int i = 0; i < len; i++) {
         //printf("->%d\n", ids[i]);
         buf[0] = '\0';
@@ -57,7 +58,8 @@ void test_rdat(void) {
     TEST_ASSERT_NOT_NULL(f);
     TS(gff_open(f, "ds1/RESOURCE.GFF"));
 
-    unsigned int* ids = gff_get_id_list(f, GFF_RDAT, &len);
+    unsigned int* ids;
+    gff_load_id_list(f, GFF_RDAT, &ids, &len);
     for (int i = 0; i < 33; i++) {
         //printf("->%d\n", ids[i]);
         buf[0] = '\0';
@@ -102,7 +104,8 @@ void test_spin(void) {
     TEST_ASSERT_NOT_NULL(f);
     TS(gff_open(f, "ds1/RESOURCE.GFF"));
 
-    unsigned int* ids = gff_get_id_list(f, GFF_SPIN, &len);
+    unsigned int* ids;
+    gff_load_id_list(f, GFF_SPIN, &ids, &len);
     for (int i = 0; i < len; i++) {
         buf[0] = '\0';
         //TS(gff_read_text(f, ids[i], buf, BUF_SIZE));
@@ -123,7 +126,8 @@ void test_ebox(void) {
     TEST_ASSERT_NOT_NULL(f);
     TS(gff_open(f, "ds1/RESOURCE.GFF"));
 
-    unsigned int* ids = gff_get_id_list(f, GFF_EBOX, &len);
+    unsigned int* ids;
+    gff_load_id_list(f, GFF_EBOX, &ids, &len);
     for (int i = 0; i < len; i++) {
         //printf("EBOX: %d, %d, %lu\n", ids[i], gff_read_ebox(f, ids[i], &ebox), sizeof(gff_ebox_t));
         TS(gff_read_ebox(f, ids[i], &ebox));
@@ -141,7 +145,8 @@ void test_window(void) {
     TEST_ASSERT_NOT_NULL(f);
     TS(gff_open(f, "ds1/RESOURCE.GFF"));
 
-    unsigned int* ids = gff_get_id_list(f, GFF_WIND, &len);
+    unsigned int* ids;
+    gff_load_id_list(f, GFF_WIND, &ids, &len);
     for (int i = 0; i < len; i++) {
         //printf("ids[%d] = %d\n", i, ids[i]);
         //TS(gff_read_text(f, ids[i], buf, BUF_SIZE));
@@ -163,7 +168,8 @@ void test_button(void) {
     TEST_ASSERT_NOT_NULL(f);
     TS(gff_open(f, "ds1/RESOURCE.GFF"));
 
-    unsigned int* ids = gff_get_id_list(f, GFF_BUTN, &len);
+    unsigned int* ids;
+    gff_load_id_list(f, GFF_BUTN, &ids, &len);
     for (int i = 0; i < len; i++) {
         //printf("->%d\n", ids[i]);
         //TS(gff_read_text(f, ids[i], buf, BUF_SIZE));
@@ -185,7 +191,8 @@ void test_frame(void) {
     TEST_ASSERT_NOT_NULL(f);
     TS(gff_open(f, "ds1/RESOURCE.GFF"));
 
-    unsigned int* ids = gff_get_id_list(f, GFF_APFM, &len);
+    unsigned int* ids;
+    gff_load_id_list(f, GFF_APFM, &ids, &len);
     for (int i = 0; i < len; i++) {
         //printf("->%d\n", ids[i]);
         //TS(gff_read_text(f, ids[i], buf, BUF_SIZE));
@@ -207,7 +214,8 @@ void test_pal(void) {
     TEST_ASSERT_NOT_NULL(f);
     TS(gff_open(f, "ds1/RESOURCE.GFF"));
 
-    unsigned int* ids = gff_get_id_list(f, GFF_PAL, &len);
+    unsigned int* ids;
+    gff_load_id_list(f, GFF_PAL, &ids, &len);
     for (int i = 0; i < len; i++) {
         printf("PAL: %d\n", ids[i]);
         TS(gff_read_raw_pal(f, ids[i], &pal));

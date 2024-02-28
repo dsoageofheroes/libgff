@@ -51,7 +51,8 @@ void test_pal(void) {
     TEST_ASSERT_NOT_NULL(f);
     TS(gff_open(f, "ds1/GPLDATA.GFF"));
 
-    unsigned int* ids = gff_get_id_list(f, GFF_PAL, &len);
+    unsigned int* ids;
+    gff_load_id_list(f, GFF_PAL, &ids, &len);
     for (int i = 0; i < len; i++) {
         //printf("PAL: %d\n", ids[i]);
         //TS(gff_read_text(f, ids[i], buf, BUF_SIZE));

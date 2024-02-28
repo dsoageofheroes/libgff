@@ -133,9 +133,9 @@ static void dump_entries(gff_file_t *gff, const char *path) {
     // If not a number convert from type to index
     for (int i = 0; i < gff->num_types; i++) {
         gff_chunk_entry_t *entry = gff->chunks[i];
-        ids = gff_get_id_list(gff, entry->chunk_type, &len);
+        gff_load_id_list(gff, entry->chunk_type, &ids, &len);
         for (int j = 0; j < len; j++) {
-            buflen = gff_read_raw_allocate(gff, entry->chunk_type, ids[j], &buf);
+            buflen = gff_load_raw(gff, entry->chunk_type, ids[j], &buf);
             snprintf(name, 255, "%s/%c%c%c%c%d", path,
                 entry->chunk_type,
                 entry->chunk_type >> 8,

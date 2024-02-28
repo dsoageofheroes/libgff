@@ -14,7 +14,6 @@ static int master_gff;
 
 static int write_toc(const int gff_idx);
 static int get_next_idx(const char *name);
-static int gff_close_file(gff_file_t *gff);
 
 int gff_get_master() {
     return master_gff;
@@ -114,7 +113,7 @@ extern int gff_free(gff_file_t *f) {
     gff_palettes_free(f);
 
     //TODO: CHECK 
-    if (gff_close_file(f)) {
+    if (gff_close(f)) {
         goto close_failure;
     }
 
@@ -676,7 +675,7 @@ header_error:
     return 0;
 }
 
-extern size_t gff_read_raw_allocate(gff_file_t *f, int gff_type, int res_id, uint8_t **buf) {
+extern size_t gff_load_raw(gff_file_t *f, int gff_type, int res_id, uint8_t **buf) {
     gff_chunk_header_t chunk;
 
     if (gff_find_chunk_header(f, &chunk, gff_type, res_id)) {
@@ -729,13 +728,13 @@ read_error:
 }
 
 extern int gff_load_mas(gff_file_t *f, int res_id, uint8_t **mas, size_t *len) {
-     return (*len = gff_read_raw_allocate(f, GFF_MAS, res_id, mas))
+     return (*len = gff_load_raw(f, GFF_MAS, res_id, mas))
          ? EXIT_SUCCESS
          : EXIT_FAILURE;
 }
 
 extern int gff_load_gpl(gff_file_t *f, int res_id, uint8_t **gpl, size_t *len) {
-     return (*len = gff_read_raw_allocate(f, GFF_GPL, res_id, gpl))
+     return (*len = gff_load_raw(f, GFF_GPL, res_id, gpl))
          ? EXIT_SUCCESS
          : EXIT_FAILURE;
 }
@@ -806,11 +805,15 @@ read_error:
     return EXIT_FAILURE;
 }
 
-extern int gff_read_monster_list(gff_file_t *f, int res_id, gff_monster_list_t **monr) {
-    return
-        gff_read_raw_allocate(f, GFF_MONR, res_id, (uint8_t**)monr)
-        ? EXIT_SUCCESS
-        : EXIT_FAILURE;
+extern int gff_load_monster_list(gff_file_t *f, int res_id, gff_monster_list_t **monr, size_t *len) {
+    *len = gff_load_raw(f, GFF_MONR, res_id, (uint8_t**)monr);
+
+    if (*len <= 0) { return EXIT_FAILURE; }
+
+    *len -= sizeof(int16_t);
+    *len /= sizeof(gff_monster_entry_t);
+
+    return EXIT_SUCCESS;
 }
 
 /*
@@ -818,26 +821,29 @@ extern int gff_read_monster_list(gff_file_t *f, int res_id, gff_monster_list_t *
  * To know the length, please use gff_get_resource_length.
  */
 //extern unsigned int* gff_get_id_list(int idx, int type_id) {
-extern unsigned int* gff_get_id_list(gff_file_t *f, int type_id, uint32_t *len) {
-    unsigned int *ids = NULL;
+extern int gff_load_id_list(gff_file_t *f, int type_id, uint32_t **ids, uint32_t *len) {
     uint32_t pos;
 
-    if (!f) { return NULL; }
+    if (!ids || !len) { return EXIT_FAILURE; }
+    if (!f) { goto null_error; }
 
     if (gff_get_resource_length(f, type_id, len) == EXIT_FAILURE) {
         goto dne;
     }
 
-    ids = malloc(sizeof(unsigned int) * *len);
+    *ids = malloc(sizeof(unsigned int) * *len);
 
-    if (ids == NULL) { return NULL; }
+    if (*ids == NULL) { goto memory_error; }
 
-    gff_get_resource_ids(f, type_id, ids, &pos);
+    gff_get_resource_ids(f, type_id, *ids, &pos);
 
-    return ids;
+    return EXIT_SUCCESS;
+memory_error:
 dne:
+null_error:
     *len = 0;
-    return NULL;
+    *ids = NULL;
+    return EXIT_FAILURE;
 }
 
 extern ssize_t gff_get_palette_id(gff_file_t *f, int palette_num) {
@@ -855,12 +861,12 @@ extern ssize_t gff_get_palette_len(gff_file_t *f) {
 }
 
 void gff_cleanup() {
-    for (int i = 0; i < NUM_FILES; i++) {
-        gff_close(i);
-    }
+    //for (int i = 0; i < NUM_FILES; i++) {
+        //gff_close(i);
+    //}
 }
 
-static int gff_close_file(gff_file_t *gff) {
+extern int gff_close(gff_file_t *gff) {
     if (gff->filename) {
         free(gff->filename);
         gff->filename = NULL;
@@ -892,9 +898,9 @@ static int gff_close_file(gff_file_t *gff) {
     return EXIT_SUCCESS;
 }
 
-void gff_close (int gff_file) {
-    if (gff_file < 0 || gff_file > NUM_FILES) { return; }
+//void gff_close (int gff_file) {
+    //if (gff_file < 0 || gff_file > NUM_FILES) { return; }
 
-    gff_close_file(open_files + gff_file );
-
-}
+    //gff_close_file(open_files + gff_file );
+//
+//}

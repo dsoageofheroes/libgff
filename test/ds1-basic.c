@@ -44,35 +44,36 @@ void test_resource_read(void) {
     TEST_ASSERT(GFF_RMAP == gff_get_type_id(f, 3));
     TEST_ASSERT(GFF_TILE == gff_get_type_id(f, 4));
 
-    unsigned int* list = gff_get_id_list(f, GFF_GFFI, &len);
+    unsigned int* list;
+    gff_load_id_list(f, GFF_GFFI, &list, &len);
     TEST_ASSERT(len == 1);
     for (uint32_t i = 0; i < len; i++) {
         TEST_ASSERT(list[i] == i);
     }
     free(list);
 
-    list = gff_get_id_list(f, GFF_ETAB, &len);
+    gff_load_id_list(f, GFF_ETAB, &list, &len);
     TEST_ASSERT(len == 1);
     for (uint32_t i = 0; i < len; i++) {
         TEST_ASSERT(list[i] == i + 8);
     }
     free(list);
 
-    list = gff_get_id_list(f, GFF_GMAP, &len);
+    gff_load_id_list(f, GFF_GMAP, &list, &len);
     TEST_ASSERT(len == 1);
     for (uint32_t i = 0; i < len; i++) {
         TEST_ASSERT(list[i] == i + 8);
     }
     free(list);
 
-    list = gff_get_id_list(f, GFF_RMAP, &len);
+    gff_load_id_list(f, GFF_RMAP, &list, &len);
     TEST_ASSERT(len == 1);
     for (uint32_t i = 0; i < len; i++) {
         TEST_ASSERT(list[i] == i + 8);
     }
     free(list);
 
-    list = gff_get_id_list(f, GFF_TILE, &len);
+    gff_load_id_list(f, GFF_TILE, &list, &len);
     TEST_ASSERT(len == 168);
     for (uint32_t i = 0; i < len; i++) {
         TEST_ASSERT(list[i] == i + 1);
@@ -109,19 +110,20 @@ void test_resource_read_negative(void) {
     TEST_ASSERT(-1 == gff_get_type_id(f, 3));
     TEST_ASSERT(-1 == gff_get_type_id(f, 4));
 
-    unsigned int* list = gff_get_id_list(f, GFF_GFFI, &len);
+    uint32_t *list;
+    gff_load_id_list(f, GFF_GFFI, &list, &len);
     TEST_ASSERT_NULL(list);
 
-    list = gff_get_id_list(f, GFF_ETAB, &len);
+    gff_load_id_list(f, GFF_ETAB, &list, &len);
     TEST_ASSERT_NULL(list);
 
-    list = gff_get_id_list(f, GFF_GMAP, &len);
+    gff_load_id_list(f, GFF_GMAP, &list, &len);
     TEST_ASSERT_NULL(list);
 
-    list = gff_get_id_list(f, GFF_RMAP, &len);
+    gff_load_id_list(f, GFF_RMAP, &list, &len);
     TEST_ASSERT_NULL(list);
 
-    list = gff_get_id_list(f, GFF_TILE, &len);
+    gff_load_id_list(f, GFF_TILE, &list, &len);
     TEST_ASSERT_NULL(list);
     TEST_ASSERT(gff_find_chunk_header(f, &chunk, GFF_TILE, 0) == EXIT_FAILURE);
     TEST_ASSERT(gff_read_chunk(f, &chunk, buf, chunk.length) == chunk.length);
@@ -142,19 +144,19 @@ void test_resource_read_negative(void) {
     TEST_ASSERT(-1 == gff_get_type_id(f, 3));
     TEST_ASSERT(-1 == gff_get_type_id(f, 4));
 
-    list = gff_get_id_list(f, GFF_GFFI, &len);
+    gff_load_id_list(f, GFF_GFFI, &list, &len);
     TEST_ASSERT_NULL(list);
 
-    list = gff_get_id_list(f, GFF_ETAB, &len);
+    gff_load_id_list(f, GFF_ETAB, &list, &len);
     TEST_ASSERT_NULL(list);
 
-    list = gff_get_id_list(f, GFF_GMAP, &len);
+    gff_load_id_list(f, GFF_GMAP, &list, &len);
     TEST_ASSERT_NULL(list);
 
-    list = gff_get_id_list(f, GFF_RMAP, &len);
+    gff_load_id_list(f, GFF_RMAP, &list, &len);
     TEST_ASSERT_NULL(list);
 
-    list = gff_get_id_list(f, GFF_TILE, &len);
+    gff_load_id_list(f, GFF_TILE, &list, &len);
     TEST_ASSERT_NULL(list);
     TEST_ASSERT(gff_find_chunk_header(f, &chunk, GFF_TILE, 0) == EXIT_FAILURE);
     TEST_ASSERT(gff_read_chunk(f, &chunk, buf, chunk.length) == chunk.length);
