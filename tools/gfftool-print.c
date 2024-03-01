@@ -190,7 +190,7 @@ static void print_monr(gff_file_t *gff, unsigned int id) {
 static void print_font(gff_file_t *gff, unsigned int id) {
     gff_font_t *font = NULL;
 
-    if (gff_read_font(gff, id, &font)) {
+    if (gff_load_font(gff, id, &font)) {
         printf("Unable to read FONT\n");
         return;
     }
@@ -364,7 +364,7 @@ static void print_window(gff_file_t *gff, unsigned int id) {
     gff_window_t *win = NULL;
     uint8_t      *buf = NULL;
 
-    gff_read_window(gff, id, &win);
+    gff_load_window(gff, id, &win);
     printfi("WINDOW #%d:\n", id);
     printfi("    header = {type: %d, len: %d, id: %d}\n", win->rh.type, win->rh.len, win->rh.id);
     /*

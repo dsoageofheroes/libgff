@@ -777,6 +777,20 @@ read_error:
     return EXIT_FAILURE;
 }
 
+extern int gff_load_spin(gff_file_t *f, int res_id, char **text, uint32_t *len) {
+    *len = gff_load_raw(f, GFF_SPIN, res_id, (uint8_t**)text);
+
+    if (*len == 0) {
+        goto read_error;
+    }
+
+    text[*len - 2] = '\0';
+
+    return EXIT_SUCCESS;
+read_error:
+    return EXIT_FAILURE;
+}
+
 extern int gff_read_merr(gff_file_t *f, int res_id, char *text, size_t len) {
     int amt_read = gff_read_raw(f, GFF_MERR, res_id, (uint8_t*)text, len);
 

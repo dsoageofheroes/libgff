@@ -595,7 +595,7 @@ extern int gff_manager_font_load(gff_manager_t *man, uint8_t **data, int32_t *w,
     int32_t     current_column = 0;
 
     //unsigned char* data = gff_create_font_rgba(man->ds1.resource, 'A', 0x00000000, 0xFFFFFFFF);
-    if (gff_read_font(man->ds1.resource, 100, &font)) {
+    if (gff_load_font(man->ds1.resource, 100, &font)) {
         goto read_error;
     }
 

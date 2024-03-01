@@ -81,7 +81,7 @@ void test_font(void) {
     TEST_ASSERT_NOT_NULL(f);
     TS(gff_open(f, "ds1/RESOURCE.GFF"));
 
-    TS(gff_read_font(f, 100, &font));
+    TS(gff_load_font(f, 100, &font));
     int count = 0;
     for (int c = 0; c < MAX_CHARS; c++ ) {
         ds_char = (gff_char_t*)(((uint8_t*)font) + font->char_offset[c]);
@@ -151,7 +151,7 @@ void test_window(void) {
         //printf("ids[%d] = %d\n", i, ids[i]);
         //TS(gff_read_text(f, ids[i], buf, BUF_SIZE));
         //(gff_read_ebox(f, ids[i], buf, BUF_SIZE));
-        TS(gff_read_window(f, ids[i], &win));
+        TS(gff_load_window(f, ids[i], &win));
         //printf("buf = '%s'\n", buf);
         free(win);
     }

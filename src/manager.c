@@ -235,8 +235,8 @@ obj_mem_error:
     return EXIT_FAILURE;
 }
 
-extern int gff_manager_read_window(gff_ds1_manager_t *man, int res_id, gff_window_t **win) {
-    return gff_read_window(man->resource, res_id, win);
+extern int gff_manager_load_window(gff_ds1_manager_t *man, int res_id, gff_window_t **win) {
+    return gff_load_window(man->resource, res_id, win);
 }
 
 extern int gff_manager_free(gff_manager_t *man) {

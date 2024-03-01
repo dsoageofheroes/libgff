@@ -51,6 +51,7 @@ extern int                gff_load_id_list(gff_file_t *f, int type_id, uint32_t 
 extern int                gff_load_mas(gff_file_t *f, int res_id, uint8_t **mas, size_t *len);
 extern int                gff_load_gpl(gff_file_t *f, int res_id, uint8_t **gpl, size_t *len);
 extern int                gff_load_monster_list(gff_file_t *f, int res_id, gff_monster_list_t **monr, size_t *len);
+extern int                gff_load_spin(gff_file_t *f, int res_id, char **text, uint32_t *len);
 extern int                gff_load_etab(gff_file_t *gff, int res_id, gff_etab_object_t **etab, uint32_t *num_etabs);
 
 /* Not in a test */
