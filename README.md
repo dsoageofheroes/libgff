@@ -155,24 +155,90 @@ extern int                gff_load_etab(gff_file_t *gff, int res_id, gff_etab_ob
 ### Images
 
 Images are stored with palettes.
-To support modern image formats, there is a DarkSun to rgba converter:
+To load images first read the palettes from a file with `gff_palettes_read`.
+Then load the number of frames with `gff_get_frame_count`.
+Note that frame sometimes have different dimensions, load them with `gff_frame_info`.
+Finally, each frame can be converted to rgba with `gff_load_frame_rgba`
 
-TBW
+    TS(gff_frame_info(f, GFF_ICON, ids[0], 0, &info));
+```
+extern int             gff_palettes_read(gff_file_t *f);
+extern int             gff_get_frame_count(gff_file_t *f, int type_id, int res_id);
+extern int             gff_frame_info(gff_file_t *f, int type_id, int res_id, int frame_id, gff_frame_info_t *info);
+extern unsigned char*  gff_load_frame_rgba(gff_file_t *f, int type_id, int res_id, int frame_id, const gff_palette_t *pal);
+```
+
+Example:
+
+```
+...
+#include <gff/image.h>
+...
+
+    if (gff_palettes_read(&gff)) {
+        fprintf(stderr, "Unable to read palettes\n");
+        return 1;
+    }
+
+    int frame_count = gff_get_frame_count(&gff, GFF_ICON, 2000);
+    gff_frame_info_t info;
+
+    for (int frame = 0; frame < frame_count; frame++) {
+        gff_frame_info(&gff, GFF_ICON, 2000, frame, &info);
+        printf("ICON 2000 frame %d, width: %d, height: %d\n", frame, info.w, info.h);
+        unsigned char *data = gff_load_frame_rgba(&gff, GFF_ICON, 2000, frame, gff.pals->palettes);
+        // data hold info.w * info.h * 4 bytes of data. Each pixel is 32-bit red, green, blue, alpha.
+        free(data);
+    }
+...
+
+```
 
 ### Music
 
-Music is also stored in XMI format which is close, but not exactly, MIDI.
+Music is also stored in XMI format which is an extended version of MIDI.
+Since XMI is not usually supported there are tools to convert to MIDI.
 
-TBW
+THere is one function for converting to midi:
+```
+extern int                gff_load_gseq(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len);
+```
+
+Example:
+```
+    uint8_t *data;
+    uint32_t len;
+    if (gff_load_gseq(&gff, 1, &data, &len)) {
+        printf("Unable to read gseq!\n");
+        return 1;
+    }
+
+    // data is now MIDI, length is len.
+
+    free (data);
+```
+
+Note that if you wish to specify the type of conversion you can with:
+```
+extern int                gff_load_gseq_type(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len, int type):
+```
+Possible types are `XMIDI_CONVERT_NOCONVERSION`, `XMIDI_CONVERT_MT32_TO_GM`, `XMIDI_CONVERT_MT32_TO_GS`, `XMIDI_CONVERT_GS127_TO_GS`.
+I've found `XMIDI_CONVERT_MT32_TO_GS` to be the closest and it is the default if type is not specified.
+
+There are respective function for `pseq`, `gseq` and `lseq`
+
+
+### Sound Effects
 
 ### GPL
 
 TBW
 
-# gffmod
+# gfftool
 
 To be written
 
 ### Writing to GFF Files
 
 Currently there is no plan to write to a gff file. If there is a desire to write to these file, please message me on Discord.
+

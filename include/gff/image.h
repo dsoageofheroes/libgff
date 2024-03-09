@@ -24,9 +24,12 @@ extern int             gff_palettes_read_type(gff_file_t *f, int type_id);
 extern int             gff_palettes_free(gff_file_t *f);
 extern int             gff_get_frame_count(gff_file_t *f, int type_id, int res_id);
 extern int             gff_frame_info(gff_file_t *f, int type_id, int res_id, int frame_id, gff_frame_info_t *info);
-extern unsigned char*  gff_get_frame_rgba_palette(gff_file_t *f, int type_id, int res_id, int frame_id, const gff_palette_t *pal);
+extern unsigned char*  gff_load_frame_rgba(gff_file_t *f, int type_id, int res_id, int frame_id, const gff_palette_t *pal);
 extern unsigned char*  gff_get_frame_rgba_palette_img(gff_image_entry_t *img, int frame_id, const gff_palette_t *pal);
 extern unsigned char*  gff_create_font_rgba(gff_file_t *f, int c, int fg_color, int bg_color);
+
+// Backward compatability
+#define gff_get_frame_rgba_palette gff_load_frame_rgba
 
 /* Not tested */
 extern int             gff_image_is_png(gff_file_t *f, int type_id, int res_id, int frame_id);

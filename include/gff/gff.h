@@ -53,6 +53,14 @@ extern int                gff_load_gpl(gff_file_t *f, int res_id, uint8_t **gpl,
 extern int                gff_load_monster_list(gff_file_t *f, int res_id, gff_monster_list_t **monr, size_t *len);
 extern int                gff_load_spin(gff_file_t *f, int res_id, char **text, uint32_t *len);
 extern int                gff_load_etab(gff_file_t *gff, int res_id, gff_etab_object_t **etab, uint32_t *num_etabs);
+extern int                gff_load_gseq(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len);
+extern int                gff_load_pseq(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len);
+extern int                gff_load_cseq(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len);
+extern int                gff_load_lseq(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len);
+extern int                gff_load_gseq_type(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len, int type):
+extern int                gff_load_pseq_type(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len, int type):
+extern int                gff_load_cseq_type(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len, int type):
+extern int                gff_load_lseq_type(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len, int type):
 
 /* Not in a test */
 extern int                gff_write_raw_bytes(gff_file_t *f, int type_id, int res_id, const char *path); // DEPRECATED?
