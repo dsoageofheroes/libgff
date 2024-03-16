@@ -223,22 +223,73 @@ Note that if you wish to specify the type of conversion you can with:
 extern int                gff_load_gseq_type(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len, int type):
 ```
 Possible types are `XMIDI_CONVERT_NOCONVERSION`, `XMIDI_CONVERT_MT32_TO_GM`, `XMIDI_CONVERT_MT32_TO_GS`, `XMIDI_CONVERT_GS127_TO_GS`.
-I've found `XMIDI_CONVERT_MT32_TO_GS` to be the closest and it is the default if type is not specified.
+I've found `XMIDI_CONVERT_MT32_TO_GS` to be the closest and it is the default if the type is not specified.
 
 There are respective function for `pseq`, `gseq` and `lseq`
 
 
 ### Sound Effects
 
+Luckily sound effects are in VOC format.
+
+```
+    uint8_t *data;
+    uint32_t len;
+    if (gff_load_voc(&gff, 100, &data, &len)) {
+        printf("Unable to read VOC!\n");
+        return 1;
+    }
+
+    // data is now VOC, length is len.
+
+    free (data);
+```
+
 ### GPL
 
-TBW
+Currently you can print the GPL using the gfftool. `build/tools/gfftool -i ds1/GPLDATA.GFF -t <the entry number of the GFF>`
+
+Integration with hooks are being worked on.
 
 # gfftool
 
-To be written
+To facilitate learning the gff (and doing quick diagnostics) gfftool was developed.
+With `gfftool` you can:
+    1. Display information about gff entries (`-t`)
+    2. Print the raw data of entries (`-d`)
+    3. Extract all images (`-I`)
+    4. Extract all xmi/voc (`-x`)
+    5. print the full window information (`-w`)
 
 ### Writing to GFF Files
 
 Currently there is no plan to write to a gff file. If there is a desire to write to these file, please message me on Discord.
 
+# Roadmap
+
+Version 0.6.0 Features
+ * Reading GFF header: 'GFFI'
+ * Reading items: 'IT1R' and
+ * Reading text: 'NAME', 'TEXT', 'MERR', 'ETME', 'SPIN' entries.
+ * Reading images: 'BMP ', 'PORT', 'WALL', 'ICON', 'TILE', 'FONT' all use palettes from 'PAL'
+ * Reading Animation: 'SCMD'
+ * Reading Objects: 'OJFF', 'MONR'
+ * Reading map data: 'ETAB', 'GMAP', 'RMAP'
+ * Reading window data: 'WIND', 'BUTN', 'APFM', 'EBOX', 'ACCL'
+ * TBD: Reading Character data: 'PSIN', 'PSST', 'SPST', 'CHAR'
+ * TBD: 'RDFF' (for objects)
+
+* 0.7.0: GPL: 'GPLI', 'GPLX', 'MAS ', 'GPL '
+* 0.8.0: GPL hooks, manager for all gffs.
+* 0.9.0: Cinematic extraction
+  * 'BMA ' Cinematic Binary File
+  * 'ACF ' Cinematic Binary Script File
+* 1.0.0: Finalization of reading all DarkSun1, DarkSun 2, DSO components and supporting documentation.
+
+Entries that are not planned to be supported: 
+ * 'PERF': ???
+ * 'CACT': Appears to be some valid bit on characters.
+ * 'ADV ': DOS drivers, not needed in the modern world.
+ * 'CMAT': ???
+ * 'CPAL': ???
+ * 'VECT': ???

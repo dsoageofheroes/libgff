@@ -715,6 +715,20 @@ read_error:
     return EXIT_FAILURE;
 }
 
+extern int gff_read_etme(gff_file_t *f, int res_id, char *text, size_t len) {
+    int amt_read = gff_read_raw(f, GFF_ETME, res_id, (uint8_t*)text, len);
+
+    if (amt_read == 0) {
+        goto read_error;
+    }
+
+    text[amt_read - 2] = '\0';
+
+    return EXIT_SUCCESS;
+read_error:
+    return EXIT_FAILURE;
+}
+
 extern int gff_read_mas(gff_file_t *f, int res_id, uint8_t *mas, size_t len) {
     int amt_read = gff_read_raw(f, GFF_MAS, res_id, mas, len);
 
@@ -735,6 +749,12 @@ extern int gff_load_mas(gff_file_t *f, int res_id, uint8_t **mas, size_t *len) {
 
 extern int gff_load_gpl(gff_file_t *f, int res_id, uint8_t **gpl, size_t *len) {
      return (*len = gff_load_raw(f, GFF_GPL, res_id, gpl))
+         ? EXIT_SUCCESS
+         : EXIT_FAILURE;
+}
+
+extern int gff_load_gplx(gff_file_t *f, int res_id, uint8_t **gpl, size_t *len) {
+     return (*len = gff_load_raw(f, GFF_GPLX, res_id, gpl))
          ? EXIT_SUCCESS
          : EXIT_FAILURE;
 }
@@ -910,6 +930,13 @@ extern int gff_close(gff_file_t *gff) {
     gff->filename = NULL;
 
     return EXIT_SUCCESS;
+}
+
+extern int gff_load_voc(gff_file_t *f, int res_id, uint8_t **data, uint32_t *len) {
+    *len = gff_load_raw(f, GFF_BVOC, res_id, data);
+    return *len
+        ? EXIT_SUCCESS
+        : EXIT_FAILURE;
 }
 
 //void gff_close (int gff_file) {

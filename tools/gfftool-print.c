@@ -97,6 +97,16 @@ static void print_text(gff_file_t *gff, unsigned int id) {
     printf("Text[%d]: '%s'\n", id, text);
 }
 
+static void print_etme(gff_file_t *gff, unsigned int id) {
+    char text[4096];
+
+    if (gff_read_etme(gff, id, text, 4096)) {
+        printf("Unable to read ETME @ %d\n", id);
+    }
+
+    printf("ETME[%d]:\n'%s'\n", id, text);
+}
+
 static void print_name(gff_file_t *gff, unsigned int id) {
     char text[16384];
     uint32_t len;
@@ -660,6 +670,22 @@ static void print_gpl(gff_file_t *gff, unsigned int id) {
     free(gpl);
 }
 
+static void print_gplx(gff_file_t *gff, unsigned int id) {
+    uint8_t *gpl = NULL;
+    size_t len;
+
+    if (gff_load_gplx(gff, id, &gpl, &len)) {
+        printf("unable to load GPLX\n");
+        return;
+    }
+
+    printf("GPLX #%d: length: %zu\n", id, len);
+
+    gff_gpl_parse(gpl, len, NULL, 0);
+
+    free(gpl);
+}
+
 
 static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
     uint32_t len;
@@ -672,6 +698,7 @@ static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
         case GFF_BUTN: print_func = print_button; break;
         case GFF_GFFI: print_func = print_gffi; break;
         case GFF_TEXT: print_func = print_text; break;
+        case GFF_ETME: print_func = print_etme; break;
         case GFF_SPIN: print_func = print_spin; break;
         case GFF_RDAT: print_func = print_rdat; break;
         case GFF_MONR: print_func = print_monr; break;
@@ -700,6 +727,7 @@ static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
         case GFF_OJFF: print_func = print_ojff; break;
         case GFF_MAS: print_func = print_mas; break;
         case GFF_GPL: print_func = print_gpl; break;
+        case GFF_GPLX: print_func = print_gplx; break;
         default:
             fprintf(stderr, "printer not written for '%c%c%c%c'\n",
                 entry->chunk_type,

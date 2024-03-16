@@ -25,6 +25,7 @@ const char* gff_type_to_str(uint32_t type) {
         case GFF_FVOC: return "Foreground play samples";
         case GFF_GMAP: return "Region map flags";
         case GFF_GPL : return "Compiled GPL files";
+        case GFF_GPLI: return "Compiled GPL file ID for subs";
         case GFF_GPLX: return "GPL index file (GPLSHELL)";
         case GFF_ICON: return "Icon resource (GIL bitmap table, 1-4 bitmaps)";
         case GFF_MAS : return "Compiled MAS (GPL master) files";
