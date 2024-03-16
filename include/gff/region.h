@@ -90,9 +90,6 @@ extern int            gff_region_get_num_objects(gff_file_t *f, uint32_t *amt);
 extern int            gff_region_object_free(gff_region_object_t *obj);
 
 // Not Tested
-extern int            gff_read_etab(gff_file_t *gff, int res_id, gff_etab_object_t **etab, uint32_t *num_etabs);
-extern int            gff_read_region_flags(gff_file_t *gff, int res_id, uint8_t flags[MAP_ROWS][MAP_COLUMNS]);
-extern int            gff_read_global_flags(gff_file_t *gff, int res_id, uint8_t flags[MAP_ROWS][MAP_COLUMNS]);
 extern unsigned char* gff_region_get_object_bmp_pal(gff_file_t *f, int res_id, int obj_id, int *w, int *h, int frame_id,
         int palette_id);
 extern unsigned char* gff_region_get_object_bmp(gff_file_t *f, int res_id, int obj_id, int *w, int *h, int frame_id);

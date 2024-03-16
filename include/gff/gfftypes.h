@@ -29,6 +29,7 @@
 #define GFF_FVOC GFFTYPE('F','V','O','C')    // Foreground play samples
 #define GFF_GMAP GFFTYPE('G','M','A','P')    // Region map flags
 #define GFF_GPL  GFFTYPE('G','P','L','\x20') // Compiled GPL files
+#define GFF_GPLI GFFTYPE('G','P','L','I')    // ???
 #define GFF_GPLX GFFTYPE('G','P','L','X')    // GPL index file (GPLSHELL)
 #define GFF_ICON GFFTYPE('I','C','O','N')    // Icon resource (GIL bitmap table, 1-4 bitmaps)
 #define GFF_MAS  GFFTYPE('M','A','S','\x20') // Compiled MAS (GPL master) files

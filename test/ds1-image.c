@@ -38,14 +38,15 @@ void test_resource(void) {
         //printf("'%s'\n", gff_type_to_str(gff_get_type_id(f, i)));
     //}
     uint32_t len = 0;
-    unsigned int* ids = gff_get_id_list(f, GFF_BMP, &len);
+    unsigned int* ids;
+    gff_load_id_list(f, GFF_BMP, &ids, &len);
     TEST_ASSERT(len == 105);
     //printf("ids = %p\n", ids);
     //printf("ids = %d\n", ids[0]);
     TEST_ASSERT(1 == gff_get_frame_count(f, GFF_BMP, ids[1]));
     free(ids);
 
-    ids = gff_get_id_list(f, GFF_ICON, &len);
+    gff_load_id_list(f, GFF_ICON, &ids, &len);
     TEST_ASSERT(len == 292);
     //printf("ids = %d\n", ids[0]);
     TEST_ASSERT(2 == gff_get_frame_count(f, GFF_ICON, ids[0]));

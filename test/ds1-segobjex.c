@@ -35,7 +35,8 @@ void test_rdff(void) {
 
     TF(gff_rdff_load(f, 0, &rdff));
 
-    unsigned int* ids = gff_get_id_list(f, GFF_RDFF, &len);
+    unsigned int* ids;
+    gff_load_id_list(f, GFF_RDFF, &ids, &len);
     for (int i = 0; i < len; i++) {
         //printf("->%d\n", ids[i]);
         TS(gff_rdff_load(f, ids[i], &rdff));
@@ -62,7 +63,8 @@ void test_scmd(void) {
         //printf("'%s'\n", gff_type_to_str(gff_get_type_id(f, i)));
     }
 
-    unsigned int* ids = gff_get_id_list(f, GFF_SCMD, &len);
+    unsigned int* ids;
+    gff_load_id_list(f, GFF_SCMD, &ids, &len);
     for (int i = 0; i < len; i++) {
         //printf("->%d\n", ids[i]);
         TS(gff_scmd_read(f, ids[i], &scmd, &slen));
@@ -90,7 +92,8 @@ void test_ojff(void) {
         printf("'%s'\n", gff_type_to_str(gff_get_type_id(f, i)));
     }
 
-    unsigned int* ids = gff_get_id_list(f, GFF_OJFF, &len);
+    unsigned int* ids;
+    gff_load_id_list(f, GFF_OJFF, &ids, &len);
     for (int i = 0; i < len; i++) {
         //printf("->%d\n", ids[i]);
         TS(gff_ojff_read(f, ids[i], &ojff));
@@ -111,7 +114,8 @@ void test_item(void) {
     TEST_ASSERT_NOT_NULL(f);
     TS(gff_open(f, "ds1/SEGOBJEX.GFF"));
 
-    unsigned int* ids = gff_get_id_list(f, GFF_RDFF, &len);
+    unsigned int* ids;
+    gff_load_id_list(f, GFF_RDFF, &ids, &len);
     int item_count = 0;
     for (int i = 0; i < len; i++) {
         //printf("->%d\n", ids[i]);

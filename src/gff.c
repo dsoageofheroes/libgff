@@ -14,7 +14,6 @@ static int master_gff;
 
 static int write_toc(const int gff_idx);
 static int get_next_idx(const char *name);
-static int gff_close_file(gff_file_t *gff);
 
 int gff_get_master() {
     return master_gff;
@@ -114,7 +113,7 @@ extern int gff_free(gff_file_t *f) {
     gff_palettes_free(f);
 
     //TODO: CHECK 
-    if (gff_close_file(f)) {
+    if (gff_close(f)) {
         goto close_failure;
     }
 
@@ -173,7 +172,7 @@ const char** gff_list(size_t *len) {
 
     if (*len == 0) { return NULL; }
 
-    ret = malloc(sizeof(char*) * *len);
+    ret = malloc(sizeof(uint8_t*) * *len);
     for (int i = 0; i < NUM_FILES; i++) {
         if (open_files[i].filename) { 
             ret[pos] = open_files[i].filename;
@@ -245,7 +244,7 @@ static char* get_filename_from_path(const char *path) {
 }
 
 /*
-static int is_master_name(const char *name) {
+static int is_master_name(const uint8_t *name) {
     if (strcmp(name, "resource.gff") == 0) { return 1; }
     if (strcmp(name, "resflop.gff") == 0) { return 1; }
 
@@ -430,7 +429,7 @@ entry_error:
 
 static int write_toc(const int gff_idx) {
     gff_file_t *gff = open_files + gff_idx;
-    static char buf[TOC_BUF_SIZE];
+    static uint8_t buf[TOC_BUF_SIZE];
 
     memset(buf, 0x0, TOC_BUF_SIZE);
 
@@ -483,7 +482,7 @@ static int write_toc(const int gff_idx) {
     return 1;
 }
 
-size_t gff_add_chunk(const int idx, const int type_id, int res_id, char *buf, const size_t len) {
+size_t gff_add_chunk(const int idx, const int type_id, int res_id, uint8_t *buf, const size_t len) {
     gff_chunk_entry_t *entry = NULL;
     gff_file_t *gff = open_files + idx;
     int chunk_idx;
@@ -573,7 +572,7 @@ extern size_t gff_write_chunk(gff_file_t *f, const gff_chunk_header_t chunk, con
 
 extern int gff_write_raw_bytes(gff_file_t *f, int type_id, int res_id, const char *path) {
     int amt = 0;
-    char *data;
+    uint8_t *data;
     FILE *file;
 
     gff_chunk_header_t chunk;
@@ -625,7 +624,7 @@ extern int gff_get_resource_length(gff_file_t *f, int type_id, uint32_t *len) {
  */
 //size_t gff_get_resource_ids(int idx, int type_id, unsigned int *ids) {
 extern int gff_get_resource_ids(gff_file_t *f, int type_id, unsigned int *ids, uint32_t *pos) {
-    unsigned char *cptr;
+    uint8_t *cptr;
     gff_seg_header_t  *seg_header;
     gff_chunk_header_t *chunk_header;
     *pos = 0;
@@ -654,7 +653,7 @@ extern int gff_get_resource_ids(gff_file_t *f, int type_id, unsigned int *ids, u
     return EXIT_SUCCESS;
 }
 
-extern int gff_read_raw(gff_file_t *f, int gff_type, int res_id, char *buf, size_t len) {
+extern int gff_read_raw(gff_file_t *f, int gff_type, int res_id, uint8_t *buf, size_t len) {
     gff_chunk_header_t chunk;
 
     if (gff_find_chunk_header(f, &chunk, gff_type, res_id)) {
@@ -676,7 +675,7 @@ header_error:
     return 0;
 }
 
-extern size_t gff_read_raw_allocate(gff_file_t *f, int gff_type, int res_id, char **buf) {
+extern size_t gff_load_raw(gff_file_t *f, int gff_type, int res_id, uint8_t **buf) {
     gff_chunk_header_t chunk;
 
     if (gff_find_chunk_header(f, &chunk, gff_type, res_id)) {
@@ -703,7 +702,7 @@ header_error:
 
 
 extern int gff_read_text(gff_file_t *f, int res_id, char *text, size_t len) {
-    int amt_read = gff_read_raw(f, GFF_TEXT, res_id, text, len);
+    int amt_read = gff_read_raw(f, GFF_TEXT, res_id, (uint8_t*)text, len);
 
     if (amt_read == 0) {
         goto read_error;
@@ -714,6 +713,50 @@ extern int gff_read_text(gff_file_t *f, int res_id, char *text, size_t len) {
     return EXIT_SUCCESS;
 read_error:
     return EXIT_FAILURE;
+}
+
+extern int gff_read_etme(gff_file_t *f, int res_id, char *text, size_t len) {
+    int amt_read = gff_read_raw(f, GFF_ETME, res_id, (uint8_t*)text, len);
+
+    if (amt_read == 0) {
+        goto read_error;
+    }
+
+    text[amt_read - 2] = '\0';
+
+    return EXIT_SUCCESS;
+read_error:
+    return EXIT_FAILURE;
+}
+
+extern int gff_read_mas(gff_file_t *f, int res_id, uint8_t *mas, size_t len) {
+    int amt_read = gff_read_raw(f, GFF_MAS, res_id, mas, len);
+
+    if (amt_read == 0) {
+        goto read_error;
+    }
+
+    return EXIT_SUCCESS;
+read_error:
+    return EXIT_FAILURE;
+}
+
+extern int gff_load_mas(gff_file_t *f, int res_id, uint8_t **mas, size_t *len) {
+     return (*len = gff_load_raw(f, GFF_MAS, res_id, mas))
+         ? EXIT_SUCCESS
+         : EXIT_FAILURE;
+}
+
+extern int gff_load_gpl(gff_file_t *f, int res_id, uint8_t **gpl, size_t *len) {
+     return (*len = gff_load_raw(f, GFF_GPL, res_id, gpl))
+         ? EXIT_SUCCESS
+         : EXIT_FAILURE;
+}
+
+extern int gff_load_gplx(gff_file_t *f, int res_id, uint8_t **gpl, size_t *len) {
+     return (*len = gff_load_raw(f, GFF_GPLX, res_id, gpl))
+         ? EXIT_SUCCESS
+         : EXIT_FAILURE;
 }
 
 extern int gff_read_names(gff_file_t *f, int res_id, char *names, size_t len, uint32_t *amt) {
@@ -741,7 +784,35 @@ read_error:
 
 
 extern int gff_read_spin(gff_file_t *f, int res_id, char *text, size_t len) {
-    int amt_read = gff_read_raw(f, GFF_SPIN, res_id, text, len);
+    int amt_read = gff_read_raw(f, GFF_SPIN, res_id, (uint8_t*)text, len);
+
+    if (amt_read == 0) {
+        goto read_error;
+    }
+
+    text[amt_read - 2] = '\0';
+
+    return EXIT_SUCCESS;
+read_error:
+    return EXIT_FAILURE;
+}
+
+extern int gff_load_spin(gff_file_t *f, int res_id, char **text, uint32_t *len) {
+    *len = gff_load_raw(f, GFF_SPIN, res_id, (uint8_t**)text);
+
+    if (*len == 0) {
+        goto read_error;
+    }
+
+    text[*len - 2] = '\0';
+
+    return EXIT_SUCCESS;
+read_error:
+    return EXIT_FAILURE;
+}
+
+extern int gff_read_merr(gff_file_t *f, int res_id, char *text, size_t len) {
+    int amt_read = gff_read_raw(f, GFF_MERR, res_id, (uint8_t*)text, len);
 
     if (amt_read == 0) {
         goto read_error;
@@ -769,7 +840,7 @@ read_error:
 }
 
 extern int gff_read_rdat(gff_file_t *f, int res_id, char *text, size_t len) {
-    int amt_read = gff_read_raw(f, GFF_RDAT, res_id, text, len - 1);
+    int amt_read = gff_read_raw(f, GFF_RDAT, res_id, (uint8_t*)text, len - 1);
 
     if (amt_read == 0) {
         goto read_error;
@@ -782,11 +853,15 @@ read_error:
     return EXIT_FAILURE;
 }
 
-extern int gff_read_monster_list(gff_file_t *f, int res_id, gff_monster_list_t **monr) {
-    return
-        gff_read_raw_allocate(f, GFF_MONR, res_id, (char**)monr)
-        ? EXIT_SUCCESS
-        : EXIT_FAILURE;
+extern int gff_load_monster_list(gff_file_t *f, int res_id, gff_monster_list_t **monr, size_t *len) {
+    *len = gff_load_raw(f, GFF_MONR, res_id, (uint8_t**)monr);
+
+    if (*len <= 0) { return EXIT_FAILURE; }
+
+    *len -= sizeof(int16_t);
+    *len /= sizeof(gff_monster_entry_t);
+
+    return EXIT_SUCCESS;
 }
 
 /*
@@ -794,26 +869,29 @@ extern int gff_read_monster_list(gff_file_t *f, int res_id, gff_monster_list_t *
  * To know the length, please use gff_get_resource_length.
  */
 //extern unsigned int* gff_get_id_list(int idx, int type_id) {
-extern unsigned int* gff_get_id_list(gff_file_t *f, int type_id, uint32_t *len) {
-    unsigned int *ids = NULL;
+extern int gff_load_id_list(gff_file_t *f, int type_id, uint32_t **ids, uint32_t *len) {
     uint32_t pos;
 
-    if (!f) { return NULL; }
+    if (!ids || !len) { return EXIT_FAILURE; }
+    if (!f) { goto null_error; }
 
     if (gff_get_resource_length(f, type_id, len) == EXIT_FAILURE) {
         goto dne;
     }
 
-    ids = malloc(sizeof(unsigned int) * *len);
+    *ids = malloc(sizeof(unsigned int) * *len);
 
-    if (ids == NULL) { return NULL; }
+    if (*ids == NULL) { goto memory_error; }
 
-    gff_get_resource_ids(f, type_id, ids, &pos);
+    gff_get_resource_ids(f, type_id, *ids, &pos);
 
-    return ids;
+    return EXIT_SUCCESS;
+memory_error:
 dne:
+null_error:
     *len = 0;
-    return NULL;
+    *ids = NULL;
+    return EXIT_FAILURE;
 }
 
 extern ssize_t gff_get_palette_id(gff_file_t *f, int palette_num) {
@@ -831,12 +909,12 @@ extern ssize_t gff_get_palette_len(gff_file_t *f) {
 }
 
 void gff_cleanup() {
-    for (int i = 0; i < NUM_FILES; i++) {
-        gff_close(i);
-    }
+    //for (int i = 0; i < NUM_FILES; i++) {
+        //gff_close(i);
+    //}
 }
 
-static int gff_close_file(gff_file_t *gff) {
+extern int gff_close(gff_file_t *gff) {
     if (gff->filename) {
         free(gff->filename);
         gff->filename = NULL;
@@ -868,9 +946,16 @@ static int gff_close_file(gff_file_t *gff) {
     return EXIT_SUCCESS;
 }
 
-void gff_close (int gff_file) {
-    if (gff_file < 0 || gff_file > NUM_FILES) { return; }
-
-    gff_close_file(open_files + gff_file );
-
+extern int gff_load_voc(gff_file_t *f, int res_id, uint8_t **data, uint32_t *len) {
+    *len = gff_load_raw(f, GFF_BVOC, res_id, data);
+    return *len
+        ? EXIT_SUCCESS
+        : EXIT_FAILURE;
 }
+
+//void gff_close (int gff_file) {
+    //if (gff_file < 0 || gff_file > NUM_FILES) { return; }
+
+    //gff_close_file(open_files + gff_file );
+//
+//}

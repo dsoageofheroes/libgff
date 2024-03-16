@@ -10,7 +10,7 @@
 #define RDFF_MAX (1<<12)
 #define GMAP_MAX (MAP_ROWS * MAP_COLUMNS)
 
-extern int gff_read_etab(gff_file_t *gff, int res_id, gff_etab_object_t **etab, uint32_t *num_etabs) {
+extern int gff_load_etab(gff_file_t *gff, int res_id, gff_etab_object_t **etab, uint32_t *num_etabs) {
     gff_chunk_header_t chunk;
 
     if (gff_find_chunk_header(gff, &chunk, GFF_ETAB, res_id) == EXIT_FAILURE) {
@@ -297,8 +297,10 @@ gff_object_t* gff_create_object(char *data, gff_rdff_header_t *entry, int16_t id
 
 static int load_region_flags(gff_file_t *f, gff_region_t *region) {
     uint32_t len;
-    unsigned int *gmap_ids = gff_get_id_list(f, GFF_GMAP, &len);
+    unsigned int *gmap_ids;
     gff_chunk_header_t chunk;
+
+    gff_load_id_list(f, GFF_GMAP, &gmap_ids, &len);
 
     if (gff_find_chunk_header(f, &chunk, GFF_GMAP, gmap_ids[0])) {
         goto chunk_error;
@@ -328,9 +330,10 @@ chunk_error:
 
 static int load_tiles(gff_file_t *f, gff_region_t *region) {
     uint32_t len;
-    unsigned int *rmap_ids = gff_get_id_list(f, GFF_RMAP, &len);
+    unsigned int *rmap_ids;
     unsigned char *data;
 
+    gff_load_id_list(f, GFF_RMAP, &rmap_ids, &len);
     if (rmap_ids == NULL) {
         goto dne;
     }
@@ -357,7 +360,7 @@ static int load_tiles(gff_file_t *f, gff_region_t *region) {
     memcpy(region->tiles, data, chunk.length);
 
     free(data);
-    region->tile_ids = gff_get_id_list(f, GFF_TILE, &len);
+    gff_load_id_list(f, GFF_TILE, &region->tile_ids, &len);
 
     free(rmap_ids);
     return EXIT_SUCCESS;
@@ -373,7 +376,9 @@ dne:
 
 static int load_region_etab(gff_file_t *f, gff_region_t *region) {
     uint32_t len;
-    unsigned int *gmap_ids = gff_get_id_list(f, GFF_GMAP, &len);
+    unsigned int *gmap_ids;
+
+    gff_load_id_list(f, GFF_GMAP, &gmap_ids, &len);
 
     if (!f) { goto null_err; }
 

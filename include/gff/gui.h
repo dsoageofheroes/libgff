@@ -148,11 +148,12 @@ typedef struct _ds_char_s {
     uint8_t  data[0];
 } gff_char_t;
 
-extern int gff_read_font(gff_file_t *f, int res_id, gff_font_t **font);
 extern int gff_read_ebox(gff_file_t *f, int res_id, gff_ebox_t *ebox);
-extern int gff_read_window(gff_file_t *f, int res_id, gff_window_t **win);
 extern int gff_read_button(gff_file_t *f, int res_id, gff_button_t *button);
 extern int gff_read_frame(gff_file_t *f, int res_id, gff_full_frame_t *frame);
 extern int gff_read_raw_pal(gff_file_t *f, int res_id, gff_raw_palette_t *pal);
+
+extern int gff_load_font(gff_file_t *f, int res_id, gff_font_t **font);
+extern int gff_load_window(gff_file_t *f, int res_id, gff_window_t **win);
 
 #endif
