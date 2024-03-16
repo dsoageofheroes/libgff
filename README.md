@@ -10,6 +10,19 @@ Some of the work is reversed engineered from the .gff others parts are scoured f
 
 # Programming Guide
 
+To be written
+
+# gffmod
+
+To be written
+
+
+# TODO
+>>>>>>> master
+
+
+# Programming Guide
+
 ## Initial Example
 
 Lets start with a simple program:

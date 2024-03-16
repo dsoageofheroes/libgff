@@ -825,6 +825,20 @@ read_error:
     return EXIT_FAILURE;
 }
 
+extern int gff_read_merr(gff_file_t *f, int res_id, char *text, size_t len) {
+    int amt_read = gff_read_raw(f, GFF_MERR, res_id, text, len);
+
+    if (amt_read == 0) {
+        goto read_error;
+    }
+
+    text[amt_read - 2] = '\0';
+
+    return EXIT_SUCCESS;
+read_error:
+    return EXIT_FAILURE;
+}
+
 extern int gff_read_rdat(gff_file_t *f, int res_id, char *text, size_t len) {
     int amt_read = gff_read_raw(f, GFF_RDAT, res_id, (uint8_t*)text, len - 1);
 

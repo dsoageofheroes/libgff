@@ -90,7 +90,6 @@ extern int            gff_region_get_num_objects(gff_file_t *f, uint32_t *amt);
 extern int            gff_region_object_free(gff_region_object_t *obj);
 
 // Not Tested
-
 extern unsigned char* gff_region_get_object_bmp_pal(gff_file_t *f, int res_id, int obj_id, int *w, int *h, int frame_id,
         int palette_id);
 extern unsigned char* gff_region_get_object_bmp(gff_file_t *f, int res_id, int obj_id, int *w, int *h, int frame_id);
