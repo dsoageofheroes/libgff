@@ -759,6 +759,12 @@ extern int gff_load_gplx(gff_file_t *f, int res_id, uint8_t **gpl, size_t *len) 
          : EXIT_FAILURE;
 }
 
+extern int gff_load_char(gff_file_t *f, int res_id, gff_char_entry_t **gchar) {
+     return (gff_load_raw(f, GFF_CHAR, res_id, (uint8_t**)gchar))
+         ? EXIT_SUCCESS
+         : EXIT_FAILURE;
+}
+
 extern int gff_read_names(gff_file_t *f, int res_id, char *names, size_t len, uint32_t *amt) {
     //int amt_read = gff_read_raw(f, GFF_NAME, res_id, text, len);
     gff_chunk_header_t chunk;
@@ -825,20 +831,6 @@ read_error:
     return EXIT_FAILURE;
 }
 
-extern int gff_read_merr(gff_file_t *f, int res_id, char *text, size_t len) {
-    int amt_read = gff_read_raw(f, GFF_MERR, res_id, text, len);
-
-    if (amt_read == 0) {
-        goto read_error;
-    }
-
-    text[amt_read - 2] = '\0';
-
-    return EXIT_SUCCESS;
-read_error:
-    return EXIT_FAILURE;
-}
-
 extern int gff_read_rdat(gff_file_t *f, int res_id, char *text, size_t len) {
     int amt_read = gff_read_raw(f, GFF_RDAT, res_id, (uint8_t*)text, len - 1);
 
@@ -863,6 +855,26 @@ extern int gff_load_monster_list(gff_file_t *f, int res_id, gff_monster_list_t *
 
     return EXIT_SUCCESS;
 }
+
+
+extern int gff_read_psin(gff_file_t *gff, int res_id, gff_psin_t *psin) {
+    return gff_read_raw(gff, GFF_PSIN, res_id, (uint8_t*)psin, sizeof(gff_psin_t))
+        ? EXIT_SUCCESS
+        : EXIT_FAILURE;
+}
+
+extern int gff_read_psst(gff_file_t *gff, int res_id, gff_psst_t *psst) {
+    return gff_read_raw(gff, GFF_PSST, res_id, (uint8_t*)psst, sizeof(gff_psst_t))
+        ? EXIT_SUCCESS
+        : EXIT_FAILURE;
+}
+
+extern int gff_read_spst(gff_file_t *gff, int res_id, gff_spst_t *spst) {
+    return gff_read_raw(gff, GFF_SPST, res_id, (uint8_t*)spst, sizeof(gff_spst_t))
+        ? EXIT_SUCCESS
+        : EXIT_FAILURE;
+}
+
 
 /*
  * Returns a list of ALL ids associated with file(idx) and type_id.

@@ -261,6 +261,83 @@ static void print_pseq(gff_file_t *gff, unsigned int id) {
     printf("Use `-x <dir>` to extract all xmis to a directory.\n");
 }
 
+static void print_psin(gff_file_t *gff, unsigned int id) {
+    gff_psin_t psin;
+
+    if (gff_read_psin(gff, id, &psin)) {
+        printf("Unable to read PSIN @ %d\n", id);
+    }
+
+    printf("PSIN[%d]: ", id);
+    for (int i = 0; i < 6; i++) {
+        if (psin.types[i]) {
+            printf("%s ", gff_get_psin_name(i));
+        }
+    }
+    if (psin.types[6] == 0xff) {
+        printf("ALL-PSIONICS" );
+    }
+    printf("\n");
+}
+
+static void print_psst(gff_file_t *gff, unsigned int id) {
+    gff_psst_t psst;
+    char psin_name[1024];
+
+    if (gff_read_psst(gff, id, &psst)) {
+        printf("Unable to read PSST @ %d\n", id);
+    }
+
+    printf("PSST[%d]: ", id);
+    for (int i = 0; i < sizeof(gff_psst_t); i++) {
+        if (psst.psionics[i]) {
+            if (man->ds1.resource) {
+                gff_read_spin(man->ds1.resource, 139 + i, psin_name, 1024);
+                printf("\n    %s", psin_name);
+            } else {
+                printf(" %d", i);
+            }
+        }
+    }
+
+    if (!man->ds1.resource) {
+        printf(" specify ds1 with -1 to get full names");
+    }
+    printf("\n");
+}
+
+static void print_spst(gff_file_t *gff, unsigned int id) {
+    gff_spst_t psst;
+    char spell_name[1024];
+
+    if (gff_read_spst(gff, id, &psst)) {
+        printf("Unable to read PSST @ %d\n", id);
+    }
+
+    //printf("MAX_SPELLS = %d\n", MAX_SPELLS);
+    //printf("sizeof(SPST) = %lu\n", sizeof(gff_spst_t));
+    printf("SPST[%d]: \n", id);
+    for (int p = 0; p < 4; p++) {
+        printf("  player %d:", p);
+    for (int i = 0; i < MAX_WIZARD_SPELL; i++) {
+        if (gff_has_spell(&psst, p, i)) {
+            if (man->ds1.resource) {
+                gff_read_spin(man->ds1.resource, i, spell_name, 1024);
+                printf("\n    %s", spell_name);
+            } else {
+                printf(" %d", i);
+            }
+        }
+    }
+        printf("\n");
+    }
+
+    if (!man->ds1.resource) {
+        printf(" specify ds1 with -1 to get full names");
+    }
+    printf("\n");
+}
+
 static void print_lseq(gff_file_t *gff, unsigned int id) {
     gff_chunk_header_t chunk;
 
@@ -493,6 +570,25 @@ static void print_etab(gff_file_t *gff, uint32_t id) {
     free(etabs);
 }
 
+static void print_char(gff_file_t *gff, unsigned int id) {
+    gff_char_entry_t *gchar;
+
+    if (gff_load_char(gff, id, &gchar)) {
+        printf("Can't read CHAR.\n");
+        return;
+    }
+
+    printf("action = %d(%s),", gchar->header.load_action, "");//gchar->header[gchar->header.load_action]);
+    printf("blocknum = %d,", gchar->header.blocknum);
+    printf("type = %d(%s),", gchar->header.type, "");//gchar->header[gchar->header.type]);
+    printf("index = %d,", gchar->header.index);
+    printf("from = %d,", gchar->header.from);
+    printf("len = %d\n", gchar->header.len);
+
+    free(gchar);
+}
+
+
 static void print_bmp(gff_file_t *gff, uint32_t id) {
     gff_frame_info_t info;
     int fc = gff_get_frame_count(gff, GFF_BMP, id);
@@ -551,6 +647,7 @@ static void print_rmap(gff_file_t *gff, uint32_t id) {
 
 static void print_rdff(gff_file_t *gff, uint32_t id) {
     gff_rdff_t rdff;
+    gff_object_t gobj;
 
     if (gff_rdff_load(gff, id, &rdff)) {
         printf("Unable to load RDFF.\n");
@@ -580,7 +677,89 @@ static void print_rdff(gff_file_t *gff, uint32_t id) {
             rdff.header.index,
             rdff.header.from,
             rdff.header.len);
-    printf("< NEED TO WRITE THE REST. >\n");
+
+    if (gff_rdff_to_object(&rdff, &gobj)) {
+        printf("Unable to convert object to rdff\n");
+        return;
+    }
+
+    switch (gobj.type) {
+        case GFF_ITEM_OBJECT:
+        //case GFF_COMBAT_OBJECT:
+            //int16_t  id; // 0, confirmed (but is negative...), is the OJFF entry
+            printf("    item %d:\n", gobj.data.item.id);
+            printf("        qty: %d", gobj.data.item.quantity);
+            printf(" value: %d", gobj.data.item.value);
+            printf(" it1r: %d", gobj.data.item.item_index);
+            printf(" icon: %d", gobj.data.item.icon);
+            printf(" charges: %d", gobj.data.item.charges);
+            printf(" special: %d\n", gobj.data.item.special);
+            printf("        slot: %d", gobj.data.item.slot);
+            printf(" name: %d", gobj.data.item.name_idx);
+            printf(" bonus: %d", gobj.data.item.bonus);
+            printf("\n");
+            /*
+    int16_t  next;  // 4, for some internal book keeping.
+    int16_t  pack_index;
+    uint16_t priority;
+    int8_t   data0;
+    */
+            break;
+        case GFF_COMBAT_OBJECT:
+        //case GFF_ITEM_OBJECT:
+            printf("    combat %d [%s] :", gobj.data.combat.id, gobj.data.combat.name);
+            printf("\n       ");
+            printf(" str: %d", gobj.data.combat.stats.str);
+            printf(" dex: %d", gobj.data.combat.stats.dex);
+            printf(" con: %d", gobj.data.combat.stats.con);
+            printf(" int: %d", gobj.data.combat.stats.intel);
+            printf(" wis: %d", gobj.data.combat.stats.wis);
+            printf(" cha: %d", gobj.data.combat.stats.cha);
+            printf("\n       ");
+            printf(" hp: %d", gobj.data.combat.hp);
+            printf(" ac: %d", gobj.data.combat.ac);
+            printf(" move: %d", gobj.data.combat.move);
+            printf(" psp: %d", gobj.data.combat.psp);
+            printf(" thac0: %d", gobj.data.combat.thac0);
+            printf("\n       ");
+            printf(" special_attack: %d", gobj.data.combat.special_attack);
+            printf(" special_defense: %d", gobj.data.combat.special_defense);
+            printf("\n       ");
+            printf(" icon(?): %d", gobj.data.combat.icon);
+            /*
+    int16_t char_index; // 4, unconfirmed but looks right.
+    int16_t ready_item_index; // 8, to be cleared.
+    int16_t weapon_index; // 10, to be cleared
+    int16_t pack_index;   // 12, to be cleared
+    uint8_t data_block[8]; // just to shift down 8 bytes.
+    uint8_t status;
+    uint8_t allegiance;
+    uint8_t data;
+    uint8_t priority;
+    uint8_t flags; */
+            printf("\n");
+            break;
+        case GFF_CHAR_OBJECT:
+            printf("Need to Write Char Object...\n");
+            break;
+        case GFF_ITEM1R_OBJECT:
+            printf("Need to Write Iten1r Object...\n");
+            break;
+        case GFF_MINI_OBJECT:
+            printf("Need to Write Mini Object...\n");
+            break;
+        case GFF_PLAYER_OBJECT:
+            printf("Need to Write Player Object...\n");
+            break;
+        case GFF_ENTITY_NAME:
+            printf("Need to Write Entity Object...\n");
+            break;
+        case GFF_FULL_ITEM_OBJECT:
+            printf("Need to Write Item Object...\n");
+            break;
+        default:
+            printf("Unknown type: %d\n", gobj.type);
+    }
 }
 
 static void print_scmd(gff_file_t *gff, uint32_t res_id) {
@@ -728,6 +907,10 @@ static void print_gff_entry(gff_file_t *gff, gff_chunk_entry_t *entry) {
         case GFF_MAS: print_func = print_mas; break;
         case GFF_GPL: print_func = print_gpl; break;
         case GFF_GPLX: print_func = print_gplx; break;
+        case GFF_PSIN: print_func = print_psin; break;
+        case GFF_PSST: print_func = print_psst; break;
+        case GFF_SPST: print_func = print_spst; break;
+        case GFF_CHAR: print_func = print_char; break;
         default:
             fprintf(stderr, "printer not written for '%c%c%c%c'\n",
                 entry->chunk_type,

@@ -225,12 +225,11 @@ gff_object_t* gff_create_object(char *data, gff_rdff_header_t *entry, int16_t id
     if (!obj) { return NULL; } // Calloc failed.
     //int16_t *objectHeader;
     //data += 9;
-    obj->type = SO_EMPTY;
+    obj->type = entry->type;
     switch(entry->type) {
         case GFF_COMBAT_OBJECT:
-            obj->type = SO_DS1_COMBAT;
-            memcpy(&(obj->data.ds1_combat), (ds1_combat_t*) data, sizeof(ds1_combat_t) - 16); // Don't copy the name over!
-            ds1_combat_t *combat = &(obj->data.ds1_combat);
+            memcpy(&(obj->data.combat), (ds1_combat_t*) data, sizeof(ds1_combat_t) - 16); // Don't copy the name over!
+            ds1_combat_t *combat = &(obj->data.combat);
             for (i = 0; i < 17 && ((ds1_combat_t*)data)->name[i]; i++) {
                 combat->name[i] = ((ds1_combat_t*)data)->name[i];
             }
@@ -260,8 +259,7 @@ gff_object_t* gff_create_object(char *data, gff_rdff_header_t *entry, int16_t id
             }
             break;
         case GFF_ITEM_OBJECT:
-            obj->type = SO_DS1_ITEM;
-            ds1_item_t *item = &(obj->data.ds1_item);
+            ds1_item_t *item = &(obj->data.item);
             memcpy(item, (ds1_item_t*) data, sizeof(ds1_item_t));
             /*
             printf("id = %d\n", item->id);

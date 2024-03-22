@@ -7,6 +7,44 @@ Some of the work is reversed engineered from the .gff others parts are scoured f
  * `libgff`: a C library for reading gff files with support for converting to modern formats. This include text, spells, images, maps information, video, and hooks for interfacing with GPL.
  * `gfftool`: a CLI tool for reading and extracting components of gff files.
 
+# Roadmap
+
+Version 0.6.0 Features
+ * Reading GFF header: 'GFFI'
+ * Reading items: 'IT1R' and
+ * Reading text: 'NAME', 'TEXT', 'MERR', 'ETME', 'SPIN' entries.
+ * Reading images: 'BMP ', 'PORT', 'WALL', 'ICON', 'TILE', 'FONT' all use palettes from 'PAL'
+ * Reading Animation: 'SCMD'
+ * Reading Objects: 'OJFF', 'MONR', 'PSIN', 'PSST', 
+ * Reading map data: 'ETAB', 'GMAP', 'RMAP'
+ * Reading window data: 'WIND', 'BUTN', 'APFM', 'EBOX', 'ACCL'
+
+* 0.7.0: 
+ * GPL: 'GPLI', 'GPLX', 'MAS ', 'GPL '
+ * Reading Characters: 'CHAR'
+ * Correct Reading 'SPST'
+ * Reading Object 'RDFF' data:
+     * item: DS1, DS2, DSO
+     * combat: DS1, DS2, DSO
+     * char: DS1, DS2, DSO
+     * mini: DS1, DS2, DSO
+     * player: DS1, DS2, DSO
+     * entity: DS1, DS2, DSO
+     * full: DS1, DS2, DSO
+
+* 0.8.0: GPL hooks, manager for all gffs.
+* 0.9.0: Cinematic extraction
+  * 'BMA ' Cinematic Binary File
+  * 'ACF ' Cinematic Binary Script File
+* 1.0.0: Debugging of reading all DarkSun1, DarkSun 2, DSO components and supporting documentation.
+
+Entries that are not planned to be supported: 
+ * 'PERF': ???
+ * 'CACT': Valid bit on characters.
+ * 'ADV ': DOS drivers, not needed in the modern world.
+ * 'CMAT': ???
+ * 'CPAL': ???
+ * 'VECT': ???
 
 # Programming Guide
 
@@ -278,31 +316,3 @@ With `gfftool` you can:
 
 Currently there is no plan to write to a gff file. If there is a desire to write to these file, please message me on Discord.
 
-# Roadmap
-
-Version 0.6.0 Features
- * Reading GFF header: 'GFFI'
- * Reading items: 'IT1R' and
- * Reading text: 'NAME', 'TEXT', 'MERR', 'ETME', 'SPIN' entries.
- * Reading images: 'BMP ', 'PORT', 'WALL', 'ICON', 'TILE', 'FONT' all use palettes from 'PAL'
- * Reading Animation: 'SCMD'
- * Reading Objects: 'OJFF', 'MONR'
- * Reading map data: 'ETAB', 'GMAP', 'RMAP'
- * Reading window data: 'WIND', 'BUTN', 'APFM', 'EBOX', 'ACCL'
- * TBD: Reading Character data: 'PSIN', 'PSST', 'SPST', 'CHAR'
- * TBD: 'RDFF' (for objects)
-
-* 0.7.0: GPL: 'GPLI', 'GPLX', 'MAS ', 'GPL '
-* 0.8.0: GPL hooks, manager for all gffs.
-* 0.9.0: Cinematic extraction
-  * 'BMA ' Cinematic Binary File
-  * 'ACF ' Cinematic Binary Script File
-* 1.0.0: Finalization of reading all DarkSun1, DarkSun 2, DSO components and supporting documentation.
-
-Entries that are not planned to be supported: 
- * 'PERF': ???
- * 'CACT': Appears to be some valid bit on characters.
- * 'ADV ': DOS drivers, not needed in the modern world.
- * 'CMAT': ???
- * 'CPAL': ???
- * 'VECT': ???

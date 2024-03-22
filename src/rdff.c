@@ -75,12 +75,13 @@ exit:
 static int fill_object(char *data, gff_rdff_header_t *entry, int16_t id, gff_object_t *obj) {
     int i;
 
-    obj->type = SO_EMPTY;
+    //obj->type = SO_EMPTY;
+    obj->type = entry->type;
     switch(entry->type) {
         case GFF_COMBAT_OBJECT:
-            obj->type = SO_DS1_COMBAT;
-            memcpy(&(obj->data.ds1_combat), (ds1_combat_t*) data, sizeof(ds1_combat_t) - 16); // Don't copy the name over!
-            ds1_combat_t *combat = &(obj->data.ds1_combat);
+            //obj->type = SO_DS1_COMBAT;
+            memcpy(&(obj->data.combat), (ds1_combat_t*) data, sizeof(ds1_combat_t) - 16); // Don't copy the name over!
+            ds1_combat_t *combat = &(obj->data.combat);
             for (i = 0; i < 17 && ((ds1_combat_t*)data)->name[i]; i++) {
                 combat->name[i] = ((ds1_combat_t*)data)->name[i];
             }
@@ -95,11 +96,11 @@ static int fill_object(char *data, gff_rdff_header_t *entry, int16_t id, gff_obj
                 if ((i % 16) == 15) { printf("\n[%d]:", i+1); }
             }
             printf("\n");
+            */
             printf("ac = %d, movement = %d, thac0 = %d, hp = %d, psi = %d"
                 "special attack = %d\n", 
-                combat->ac, combat->move, combat->thac0, combat->hp, combat->psi,
+                combat->ac, combat->move, combat->thac0, combat->hp, combat->psp,
                 combat->special_attack);
-            */
             combat->char_index = NULL_OBJECT;
             combat->ready_item_index = NULL_OBJECT;
             combat->weapon_index = NULL_OBJECT;
@@ -110,8 +111,8 @@ static int fill_object(char *data, gff_rdff_header_t *entry, int16_t id, gff_obj
             }
             break;
         case GFF_ITEM_OBJECT:
-            obj->type = SO_DS1_ITEM;
-            ds1_item_t *item = &(obj->data.ds1_item);
+            //obj->type = SO_DS1_ITEM;
+            ds1_item_t *item = &(obj->data.item);
             memcpy(item, (ds1_item_t*) data, sizeof(ds1_item_t));
             /*
             printf("id = %d\n", item->id);

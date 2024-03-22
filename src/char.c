@@ -2,6 +2,7 @@
 #include "gff/gfftypes.h"
 #include "gff/common.h"
 #include "gff/gff.h"
+#include <gff/gff.h>
 //#include "rules.h"
 //#include "port.h"
 #include <string.h>
@@ -20,6 +21,43 @@ int gff_char_delete(const int id) {
     */
 
     return 0; // FAILED
+}
+
+extern char* gff_get_psin_name(uint8_t psin) {
+    switch(psin) {
+        case PSIONIC_PSYCHOKINETIC:
+            return "Psyhchokinetic";
+            break;
+        case PSIONIC_PSYCHOMETABOLISM:
+            return "Psychometabolism";
+            break;
+        case PSIONIC_TELEPATH:
+            return "Telepathy";
+            break;
+        case SPHERE_AIR:
+            return "Air";
+            break;
+        case SPHERE_EARTH:
+            return "Earth";
+            break;
+        case SPHERE_FIRE:
+            return "Fire";
+            break;
+        case SPHERE_WATER:
+            return "Water";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+extern int gff_has_spell(gff_spell_list_t *list, int player, int spell) {
+    if (player < 0 || player > 3) { return 0; }
+    if (spell < 0 || spell >= (WIZ_MAX + CLERIC_MAX - 1)) { return 0; }
+
+    //return list->spells[spell / 8] & (spell % 8);
+    //return list->spells[spell / 8] & (spell % 8);
+    return (list->spells[player][spell / 8] >> (spell % 8)) & 0x01;
+    //return list->spells[(player)][(spell)>>3]&(1<<((spell)&7));
 }
 
 /*

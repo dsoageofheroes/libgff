@@ -19,6 +19,7 @@ typedef struct gff_monster_region_s {
 extern gff_file_t open_files[NUM_FILES];
 
 #include <gff/region.h>
+#include <gff/char.h>
 
 /* In a test */
 extern int                gff_init(gff_file_t *f);
@@ -45,6 +46,10 @@ extern int                gff_read_spin(gff_file_t *f, int res_id, char *text, s
 extern int                gff_read_merr(gff_file_t *f, int res_id, char *text, size_t len);
 extern int                gff_read_region_flags(gff_file_t *gff, int res_id, uint8_t flags[MAP_ROWS][MAP_COLUMNS]);
 extern int                gff_read_global_flags(gff_file_t *gff, int res_id, uint8_t flags[MAP_ROWS][MAP_COLUMNS]);
+extern int                gff_read_psin(gff_file_t *gff, int res_id, gff_psin_t *psin);
+extern int                gff_read_psst(gff_file_t *gff, int res_id, gff_psst_t *psst);
+extern int                gff_read_spst(gff_file_t *gff, int res_id, gff_spst_t *spst);
+//extern int                gff_read_player(gff_file_t *gff, int res_id, gff_player_t *player);
 
 // Load Functions
 extern size_t             gff_load_raw(gff_file_t *f, int gff_type, int res_id, uint8_t **buf);
@@ -64,6 +69,7 @@ extern int                gff_load_pseq_type(gff_file_t *gff, int res_id, uint8_
 extern int                gff_load_cseq_type(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len, int type);
 extern int                gff_load_lseq_type(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len, int type);
 extern int                gff_load_voc(gff_file_t *f, int res_id, uint8_t **data, uint32_t *len);
+extern int                gff_load_char(gff_file_t *f, int res_id, gff_char_entry_t **gchar);
 
 /* Not in a test */
 extern int                gff_write_raw_bytes(gff_file_t *f, int type_id, int res_id, const char *path); // DEPRECATED?

@@ -76,13 +76,6 @@ typedef struct _gff_script_entry_t {
 
 extern gff_script_entry_t script_entry_table[MAX_SCRIPTS];
 
-// Types of Sol Oscuro objects
-enum {
-    SO_EMPTY = 0, // Empty: free to overide!
-    SO_DS1_COMBAT,
-    SO_DS1_ITEM
-};
-
 // Tested
 extern gff_region_t*  gff_region_load(gff_file_t *f);
 extern int            gff_region_free(gff_region_t *region);

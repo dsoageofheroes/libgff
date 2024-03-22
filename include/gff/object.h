@@ -109,8 +109,8 @@ enum gff_object_type_e {
 typedef struct gff_object_s {
     uint16_t type;
     union {
-        ds1_combat_t ds1_combat;
-        ds1_item_t   ds1_item;
+        ds1_combat_t combat;
+        ds1_item_t   item;
     } data;
 } gff_object_t;
 
