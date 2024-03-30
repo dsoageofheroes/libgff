@@ -42,10 +42,13 @@ static void print_gff_frame(gff_frame_t *frame) {
     printf("    title: %s\n", frame->title);
 }
 
-static void print_button(gff_file_t *gff, unsigned int id) {
+static void print_button_item(gff_file_t *gff, unsigned int id, gff_gui_item_t *item) {
     gff_button_t button;
 
     gff_read_button(gff, id, &button);
+    if (item) {
+        button.frame.initbounds = item->init_bounds;
+    }
     printfi("BUTTON #%d\n", id);
     printfi("    header = {type: %d, len: %d, id: %d}\n", button.rh.type, button.rh.len, button.rh.id);
     printfi("    icon: %d @ (%d, %d)\n", button.icon_id, button.iconx, button.icony);
@@ -56,6 +59,10 @@ static void print_button(gff_file_t *gff, unsigned int id) {
     printfi("    userid: %d\n", button.userid);
     printfi("    text: '%s' (%d, %d)\n", button.text, button.textx, button.texty);
     printfi("    key: %d\n", button.key);
+}
+
+static void print_button(gff_file_t *gff, unsigned int id) {
+    print_button_item(gff, id, NULL);
 }
 
 
@@ -488,7 +495,7 @@ static void print_window(gff_file_t *gff, unsigned int id) {
                 print_frame(gff, item->id);
                 break;
             case GFF_BUTN:
-                print_button(gff, item->id);
+                print_button_item(gff, item->id, item);
                 break;
             case GFF_EBOX:
                 print_ebox(gff, item->id);

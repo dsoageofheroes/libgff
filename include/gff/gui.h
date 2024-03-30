@@ -29,7 +29,7 @@ typedef struct gff_rect_s {
 } gff_rect_t;
 
 typedef struct gff_gui_item_s {
-    int8_t data[4];
+    int8_t data[4]; // probably an internal pointer of some sort.
     uint32_t type;
     uint32_t id;
     gff_rect_t init_bounds;

@@ -456,8 +456,8 @@ extern unsigned char* gff_get_frame_rgba_palette_img(gff_image_entry_t *img, int
 
     frame_offset = *(uint32_t*)(img->data + 6 + frame_id * 4);
     if (frame_offset + 18 >= img->data_len) {
-        printf("WARNING: can't find frame %d, using frame 0!\n", frame_id);
-        frame_offset = 18;
+        printf("ERROR: can't find frame %d.\n", frame_id);
+        return NULL;
     }
     if (frame_offset > img->data_len) { return NULL; }
     width = *(uint16_t*)(img->data + frame_offset);
