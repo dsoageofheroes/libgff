@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "gff/debug.h"
 #include "gff/gff.h"
 #include "gff/gfftypes.h"
 #include "gff/item.h"
@@ -20,7 +21,7 @@ extern int gff_item_read(gff_file_t *f, int id, ds1_item_t *item) {
     if (item == NULL) { goto null_error; }
     if (id < 0) { id *= -1; }
 
-    if (gff_rdff_load(f, id, &entry)) {
+    if (gff_read_rdff(f, id, &entry)) {
         goto rdff_load_error;
     }
 
@@ -84,6 +85,77 @@ read_error:
     free(*item1rs);
     *item1rs = NULL;
 header_error:
+    return EXIT_FAILURE;
+}
+
+extern int gff_manager_ds1_read_item1r(gff_manager_t *man, const int32_t item_idx, ds_item1r_t *item1r) {
+    gff_chunk_header_t chunk;
+    char *buf = NULL;
+
+    gff_find_chunk_header(man->ds1.gpl, &chunk, GFF_IT1R, 1);
+    if (chunk.length == 0 || (chunk.length % sizeof(ds_item1r_t)) != 0) {
+        printf("Unable to load header from IT1R.\n");
+        goto header_error;
+    }
+
+    uint32_t num_item1rs = chunk.length / sizeof(ds_item1r_t);
+    buf = malloc(chunk.length);
+    size_t amt = gff_read_chunk(man->ds1.gpl, &chunk, buf, chunk.length);
+
+    if (amt != chunk.length) {
+        printf("Unable to read IT1Rs.\n");
+        goto read_error;
+    }
+
+    if (item_idx >= num_item1rs) {
+        printf("item_idx out of range.\n");
+        goto index_error;
+    }
+
+    memcpy(item1r, buf + sizeof(ds_item1r_t) * item_idx, sizeof(ds_item1r_t));
+    free(buf);
+
+    return EXIT_SUCCESS;
+index_error:
+read_error:
+header_error:
+    if (buf) { free(buf); }
+    return EXIT_FAILURE;
+}
+
+extern int gff_manager_ds1_read_name(gff_manager_t *man, const int32_t name_idx, char *buf) {
+    gff_chunk_header_t chunk;
+    char *names = NULL;
+
+    if (gff_find_chunk_header(man->ds1.gpl, &chunk, GFF_NAME, 1)) {
+        debug("Unable to read NAME.\n");
+        goto chunk_error;
+    }
+
+    names = malloc(chunk.length);
+    uint32_t num_names = chunk.length / 25;
+    uint32_t amt = gff_read_chunk(man->ds1.gpl, &chunk, names, chunk.length);
+
+    if (amt != chunk.length) {
+        printf("Can't read names.\n");
+        goto name_read_error;
+    }
+
+    if (name_idx >= num_names || name_idx < 0) {
+        debug("name_idx out of range.\n");
+        goto range_error;
+    }
+
+    memcpy(buf, names + 25 * name_idx, 25);
+
+    free(names);
+
+    return EXIT_SUCCESS;
+
+range_error:
+name_read_error:
+chunk_error:
+    if (names) { free(names); }
     return EXIT_FAILURE;
 }
 

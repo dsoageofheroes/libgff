@@ -49,6 +49,7 @@ extern int                gff_read_global_flags(gff_file_t *gff, int res_id, uin
 extern int                gff_read_psin(gff_file_t *gff, int res_id, gff_psin_t *psin);
 extern int                gff_read_psst(gff_file_t *gff, int res_id, gff_psst_t *psst);
 extern int                gff_read_spst(gff_file_t *gff, int res_id, gff_spst_t *spst);
+extern int                gff_read_rdff(gff_file_t *f, int res_id, gff_rdff_t *rdff);
 //extern int                gff_read_player(gff_file_t *gff, int res_id, gff_player_t *player);
 
 // Load Functions
@@ -69,7 +70,8 @@ extern int                gff_load_pseq_type(gff_file_t *gff, int res_id, uint8_
 extern int                gff_load_cseq_type(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len, int type);
 extern int                gff_load_lseq_type(gff_file_t *gff, int res_id, uint8_t **data, uint32_t *len, int type);
 extern int                gff_load_voc(gff_file_t *f, int res_id, uint8_t **data, uint32_t *len);
-extern int                gff_load_char(gff_file_t *f, int res_id, gff_char_entry_t **gchar);
+extern int                gff_load_char(gff_file_t *f, int res_id, gff_char_entry_t **gchar, uint32_t *len);
+extern int                gff_load_rdff(gff_file_t *f, int res_id, gff_rdff_t **rdff, uint32_t *len);
 
 /* Not in a test */
 extern int                gff_write_raw_bytes(gff_file_t *f, int type_id, int res_id, const char *path); // DEPRECATED?

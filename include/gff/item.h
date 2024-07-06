@@ -31,13 +31,35 @@ typedef struct ds1_item_s { // Not confirmed at all...
     int16_t  item_index; // Correct, maps into it1r.
     int16_t  icon;
     uint16_t charges;
-    uint8_t  special;  // confirmed
+    uint8_t  special;  // confirmed, maybe a uint16_t?
+    //uint8_t  priority; // ??
     uint8_t  slot;     // confirmed
-    uint8_t  name_idx; // confirmed
+    uint8_t  name_idx; // confirmed, maybe a uint16_t?
     int8_t   bonus;
     uint16_t priority;
     int8_t   data0;
 } __attribute__ ((__packed__)) ds1_item_t;
+/*
+*/
+
+/*
+typedef struct ds1_item_s { // Not confirmed at all...
+    int16_t  id; // 0, confirmed (but is negative...), is the OJFF entry
+    uint16_t quantity; // confirmed, 0 mean no need.
+    int16_t  next;  // 4, for some internal book keeping.
+    uint16_t value; // 6, confirmed
+    int16_t  pack_index;
+    int16_t  item_index; // Correct, maps into it1r.
+    int16_t  icon;
+    uint16_t charges;
+    uint16_t  special;  // confirmed, maybe a uint16_t?
+    uint8_t  priority; // ??
+    uint8_t  slot;     // confirmed
+    uint16_t  name_idx; // confirmed, maybe a uint16_t?
+    int8_t   bonus;
+    //int8_t   data[1];
+} __attribute__ ((__packed__)) ds1_item_t;
+*/
 
 typedef struct ds_item1r_s {
     uint8_t weapon_type;

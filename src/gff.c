@@ -759,8 +759,8 @@ extern int gff_load_gplx(gff_file_t *f, int res_id, uint8_t **gpl, size_t *len) 
          : EXIT_FAILURE;
 }
 
-extern int gff_load_char(gff_file_t *f, int res_id, gff_char_entry_t **gchar) {
-     return (gff_load_raw(f, GFF_CHAR, res_id, (uint8_t**)gchar))
+extern int gff_load_char(gff_file_t *f, int res_id, gff_char_entry_t **gchar, uint32_t *len) {
+     return (*len = gff_load_raw(f, GFF_CHAR, res_id, (uint8_t**)gchar))
          ? EXIT_SUCCESS
          : EXIT_FAILURE;
 }

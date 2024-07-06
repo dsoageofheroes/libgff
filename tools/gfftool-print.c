@@ -7,6 +7,7 @@
 #include <gff/gui.h>
 #include <gpl/gpl.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -16,6 +17,8 @@ static int indent = 0;
 #define printfi(...) { printf("%*s", indent, ""); printf(__VA_ARGS__); }
 
 static void print_ojff(gff_file_t *gff, uint32_t res_id);
+static int print_combat(ds1_combat_t *dc, const char *prefix);
+static int print_item(ds1_item_t *item, const char *prefix);
 
 static void print_gff_frame(gff_frame_t *frame) {
     printf("    flags: %d, ", frame->flags);
@@ -129,6 +132,27 @@ static void print_name(gff_file_t *gff, unsigned int id) {
     }
 }
 
+static void print_item1r(ds_item1r_t *item1r, const char *prefix) {
+    printf("%s    weapon: {type: %d, damage_type: %d, range: %d}\n",
+            prefix,
+            item1r->weapon_type,
+            item1r->damage_type,
+            item1r->range);
+    printf("%s    weight: %d\n", prefix, item1r->weight);
+    printf("%s    base_hp: %d\n", prefix, item1r->base_hp);
+    printf("%s    material: %d\n", prefix, item1r->material);
+    printf("%s    placement: %d\n", prefix, item1r->placement);
+    printf("%s    damage: %d x %d D %d\n",
+            prefix,
+            item1r->num_attacks,
+            item1r->dice,
+            item1r->sides);
+    printf("%s    mod: %d\n", prefix, item1r->mod);
+    printf("%s    flags: %d\n", prefix, item1r->flags);
+    printf("%s    class: %d\n", prefix, item1r->legal_class);
+    printf("%s    AC: %d\n", prefix, item1r->base_AC);
+}
+
 static void print_it1r(gff_file_t *gff, unsigned int id) {
     ds_item1r_t *item1rs = NULL;
     uint32_t     num_item1rs = 0;
@@ -146,22 +170,7 @@ static void print_it1r(gff_file_t *gff, unsigned int id) {
 
     for (int i = 0; i < num_item1rs; i++) {
         printf("IT1R #%d: %s\n", i, names + 25 * i);
-        printf("    weapon: {type: %d, damage_type: %d, range: %d}\n",
-                item1rs[i].weapon_type,
-                item1rs[i].damage_type,
-                item1rs[i].range);
-        printf("    weight: %d\n", item1rs[i].weight);
-        printf("    base_hp: %d\n", item1rs[i].base_hp);
-        printf("    material: %d\n", item1rs[i].material);
-        printf("    placement: %d\n", item1rs[i].placement);
-        printf("    damage: %d x %d D %d\n",
-                item1rs[i].num_attacks,
-                item1rs[i].dice,
-                item1rs[i].sides);
-        printf("    mod: %d\n", item1rs[i].mod);
-        printf("    flags: %d\n", item1rs[i].flags);
-        printf("    class: %d\n", item1rs[i].legal_class);
-        printf("    AC: %d\n", item1rs[i].base_AC);
+        print_item1r(item1rs + i, "");
     }
 
     free(item1rs);
@@ -578,9 +587,12 @@ static void print_etab(gff_file_t *gff, uint32_t id) {
 }
 
 static void print_char(gff_file_t *gff, unsigned int id) {
+    uint32_t len = 0, pos = 0;
     gff_char_entry_t *gchar;
+    gff_rdff_header_t *rdff;
+    void *data = NULL;
 
-    if (gff_load_char(gff, id, &gchar)) {
+    if (gff_load_char(gff, id, &gchar, &len)) {
         printf("Can't read CHAR.\n");
         return;
     }
@@ -591,6 +603,73 @@ static void print_char(gff_file_t *gff, unsigned int id) {
     printf("index = %d,", gchar->header.index);
     printf("from = %d,", gchar->header.from);
     printf("len = %d\n", gchar->header.len);
+    ds1_item_t *item = NULL;
+    while (pos < len) {
+        printf("pos: %u, len: %u\n", pos, len);
+        rdff = (gff_rdff_header_t*)(((char*)gchar) + pos);
+        data = rdff + 1;
+        pos += sizeof(gff_rdff_header_t);
+        switch(rdff->load_action) {
+            case RDFF_OBJECT:
+                switch(rdff->type) {
+                    case GFF_COMBAT_OBJECT:
+                        printf("sizeof: %lu\n", sizeof(ds1_combat_t));
+                        print_combat((ds1_combat_t*)data, "        ");
+                        break;
+                    case GFF_ITEM_OBJECT:
+                        printf("ITEM\n");
+                        break;
+                    case GFF_CHAR_OBJECT:
+                        printf("CHAR OBJECT\n");
+                    case GFF_MINI_OBJECT:
+                        printf("MINI\n");
+                    default:
+                        printf("Unexpected RDFF_OBJECT for char.\n");
+                        break;
+                }
+                break;
+            case RDFF_CONTAINER:
+                printf("container: with len %u\n", rdff->len);
+                item = (ds1_item_t*)(((char*)rdff) + sizeof(gff_rdff_header_t));
+                print_item(item, "    ");
+                break;
+            case RDFF_DATA:
+                printf("data ");
+                switch(rdff->type) {
+                    case RDFF_DATA_COMBAT:
+                        printf("?Combat\n");
+                        break;
+                    case RDFF_DATA_ITEM1R:
+                        printf("item1r (This is ignore during ds1 character loading)\n");
+                        ds_item1r_t *item1r = (ds_item1r_t*)(((char*)rdff) + sizeof(gff_rdff_header_t));
+                        print_item1r(item1r, "    ");
+                        //print_item(item, "    ");
+                        break;
+                    case RDFF_DATA_ITEM:
+                        printf("ITEM (This is ignore during character loading)\n");
+                        item = (ds1_item_t*)(((char*)rdff) + sizeof(gff_rdff_header_t));
+                        print_item(item, "    ");
+                        break;
+                    case RDFF_DATA_CHARREC:
+                    case RDFF_DATA_MINI:
+                    case RDFF_DATA_NAMEIX:
+                    default:
+                        printf(" UNKNOWN(%d)\n", rdff->type);
+                        break;
+                }
+                break;
+            case RDFF_NEXT:
+                item = (ds1_item_t*)(((char*)rdff) + sizeof(gff_rdff_header_t));
+                print_item(item, "    ");
+                break;
+            case RDFF_END:
+                printf("end\n");
+                break;
+            default:
+                printf("Unknown load action %d\n", rdff->load_action);
+        }
+        pos += rdff->len;
+    }
 
     free(gchar);
 }
@@ -654,16 +733,32 @@ static void print_rmap(gff_file_t *gff, uint32_t id) {
 
 static void print_rdff(gff_file_t *gff, uint32_t id) {
     gff_rdff_t rdff;
-    gff_object_t gobj;
 
-    if (gff_rdff_load(gff, id, &rdff)) {
+    if (gff_read_rdff(gff, id, &rdff)) {
         printf("Unable to load RDFF.\n");
         return;
     }
 
     switch(rdff.header.load_action) {
         case RDFF_OBJECT:
-            printf("RDFF #%d (OBJECT):\n", id);
+            printf("RDFF #%d (OBJECT): ", id);
+            switch(rdff.header.type) {
+                case GFF_COMBAT_OBJECT:
+                    printf("Combat\n");
+                    break;
+                case GFF_ITEM_OBJECT:
+                    printf("ITEM\n");
+                    break;
+                case GFF_CHAR_OBJECT:
+                    printf("CHAR\n");
+                    break;
+                case GFF_MINI_OBJECT:
+                    printf("MINI\n");
+                    break;
+                default:
+                    printf("Unknown\n");
+                    break;
+            }
             break;
         case RDFF_CONTAINER:
             printf("RDFF #%d (CONTAINER):\n", id);
@@ -677,95 +772,6 @@ static void print_rdff(gff_file_t *gff, uint32_t id) {
         case RDFF_END:
             printf("RDFF #%d (END):\n", id);
             break;
-    }
-    printf("    header: {blocknum: %d, type: %d, index: %d, from: %d, len: %d}\n",
-            rdff.header.blocknum,
-            rdff.header.type,
-            rdff.header.index,
-            rdff.header.from,
-            rdff.header.len);
-
-    if (gff_rdff_to_object(&rdff, &gobj)) {
-        printf("Unable to convert object to rdff\n");
-        return;
-    }
-
-    switch (gobj.type) {
-        case GFF_ITEM_OBJECT:
-        //case GFF_COMBAT_OBJECT:
-            //int16_t  id; // 0, confirmed (but is negative...), is the OJFF entry
-            printf("    item %d:\n", gobj.data.item.id);
-            printf("        qty: %d", gobj.data.item.quantity);
-            printf(" value: %d", gobj.data.item.value);
-            printf(" it1r: %d", gobj.data.item.item_index);
-            printf(" icon: %d", gobj.data.item.icon);
-            printf(" charges: %d", gobj.data.item.charges);
-            printf(" special: %d\n", gobj.data.item.special);
-            printf("        slot: %d", gobj.data.item.slot);
-            printf(" name: %d", gobj.data.item.name_idx);
-            printf(" bonus: %d", gobj.data.item.bonus);
-            printf("\n");
-            /*
-    int16_t  next;  // 4, for some internal book keeping.
-    int16_t  pack_index;
-    uint16_t priority;
-    int8_t   data0;
-    */
-            break;
-        case GFF_COMBAT_OBJECT:
-        //case GFF_ITEM_OBJECT:
-            printf("    combat %d [%s] :", gobj.data.combat.id, gobj.data.combat.name);
-            printf("\n       ");
-            printf(" str: %d", gobj.data.combat.stats.str);
-            printf(" dex: %d", gobj.data.combat.stats.dex);
-            printf(" con: %d", gobj.data.combat.stats.con);
-            printf(" int: %d", gobj.data.combat.stats.intel);
-            printf(" wis: %d", gobj.data.combat.stats.wis);
-            printf(" cha: %d", gobj.data.combat.stats.cha);
-            printf("\n       ");
-            printf(" hp: %d", gobj.data.combat.hp);
-            printf(" ac: %d", gobj.data.combat.ac);
-            printf(" move: %d", gobj.data.combat.move);
-            printf(" psp: %d", gobj.data.combat.psp);
-            printf(" thac0: %d", gobj.data.combat.thac0);
-            printf("\n       ");
-            printf(" special_attack: %d", gobj.data.combat.special_attack);
-            printf(" special_defense: %d", gobj.data.combat.special_defense);
-            printf("\n       ");
-            printf(" icon(?): %d", gobj.data.combat.icon);
-            /*
-    int16_t char_index; // 4, unconfirmed but looks right.
-    int16_t ready_item_index; // 8, to be cleared.
-    int16_t weapon_index; // 10, to be cleared
-    int16_t pack_index;   // 12, to be cleared
-    uint8_t data_block[8]; // just to shift down 8 bytes.
-    uint8_t status;
-    uint8_t allegiance;
-    uint8_t data;
-    uint8_t priority;
-    uint8_t flags; */
-            printf("\n");
-            break;
-        case GFF_CHAR_OBJECT:
-            printf("Need to Write Char Object...\n");
-            break;
-        case GFF_ITEM1R_OBJECT:
-            printf("Need to Write Iten1r Object...\n");
-            break;
-        case GFF_MINI_OBJECT:
-            printf("Need to Write Mini Object...\n");
-            break;
-        case GFF_PLAYER_OBJECT:
-            printf("Need to Write Player Object...\n");
-            break;
-        case GFF_ENTITY_NAME:
-            printf("Need to Write Entity Object...\n");
-            break;
-        case GFF_FULL_ITEM_OBJECT:
-            printf("Need to Write Item Object...\n");
-            break;
-        default:
-            printf("Unknown type: %d\n", gobj.type);
     }
 }
 
@@ -976,3 +982,115 @@ extern void gffmod_print_entry(gff_file_t *gff, const char *name) {
     print_gff_entry(gff, gff->chunks[index]);
 }
 
+static int print_combat(ds1_combat_t *dc, const char *prefix) {
+    //int16_t char_index; // 4, unconfirmed but looks right.
+    //int16_t ready_item_index; // 8, to be cleared.
+    //int16_t weapon_index; // 10, to be cleared
+    //int16_t pack_index;   // 12, to be cleared
+    //uint8_t data_block[8]; // just to shift down 8 bytes.
+    //uint8_t allegiance;
+    //uint8_t data;
+    printf("%sName: %s\n", prefix, dc->name);
+    printf("%sstats: {str: %d, dex: %d, con: %d, intel: %d, wis: %d, cha: %d}\n", prefix, dc->stats.str, dc->stats.dex, dc->stats.con, dc->stats.intel, dc->stats.wis, dc->stats.cha);
+    printf("%scombat: {hp: %d, psp: %d, ac: %d, move: %d, status: %d, thac0: %d}\n", prefix, dc->hp, dc->psp, dc->ac, dc->move, dc->status, dc->thac0);
+    printf("%sid: %d\n", prefix, dc->id);
+    printf("%sspecial: {attack: %d, defense: %d}\n", prefix, dc->special_attack, dc->special_defense);
+    printf("%sicon: %d\n", prefix, dc->icon);
+    printf("%spriority: %d\n", prefix, dc->priority);
+    printf("%sflags: %d\n", prefix, dc->flags);
+
+    return EXIT_SUCCESS;
+}
+
+static int print_item(ds1_item_t *item, const char *prefix) {
+    ds_item1r_t item1r;
+    //int16_t  next;  // 4, for some internal book keeping.
+    printf("%sid: %d\n", prefix, item->id); // points to OJFF
+    printf("%squantity: %d\n", prefix, item->quantity);
+    printf("%svalue: %d\n", prefix, item->value);
+    printf("%spack_index: %d\n", prefix, item->pack_index);
+    printf("%sitem_index: %d\n", prefix, item->item_index); // it1r
+    if (!gff_manager_ds1_read_item1r(man, item->item_index, &item1r)) {
+        print_item1r(&item1r, prefix);
+    }
+    printf("%sicon: %d\n", prefix, item->icon);
+    printf("%scharges: %d\n", prefix, item->charges);
+    printf("%sspecial: %d\n", prefix, item->special);
+    printf("%sslot: %d\n", prefix, item->slot);
+    printf("%sname: %d\n", prefix, item->name_idx);
+    char name[64];
+    if (!gff_manager_ds1_read_name(man, item->name_idx, name)) {
+        printf("%s    %s\n", prefix, name);
+    }
+    printf("%sbonus: %d\n", prefix, item->bonus);
+    printf("%spriority: %d\n", prefix, item->priority);
+    return EXIT_SUCCESS;
+}
+
+extern int gffmod_print_rdff(gff_manager_t *man, gff_file_t *gff, const char *rdff_entry) {
+    gff_rdff_t rdff;
+    int32_t id;
+
+    errno = 0;
+    id = strtol(rdff_entry, NULL, 10);
+    if (errno != 0) {
+        printf("Unable to convert '%s' to a number.\n", rdff_entry);
+        return EXIT_FAILURE;
+    }
+
+    if (gff_read_rdff(gff, id, &rdff)) {
+        printf("Unable to load RDFF.\n");
+        return EXIT_FAILURE;
+    }
+
+    printf("RDFF #%d:\n", id);
+    printf("    header: {blocknum: %d, type: %d, index: %d, from: %d, len: %d}\n",
+            rdff.header.blocknum,
+            rdff.header.type,
+            rdff.header.index,
+            rdff.header.from,
+            rdff.header.len);
+
+    if (rdff.header.load_action == -1) {
+        printf("RDFF load is -1!\n");
+        return EXIT_FAILURE;
+    }
+
+    switch(rdff.header.load_action) {
+        case RDFF_OBJECT:
+            printf("    Type: Object/");
+            switch(rdff.header.type) {
+                case GFF_COMBAT_OBJECT:
+                    printf("Combat\n");
+                    print_combat((ds1_combat_t*)rdff.data, "        ");
+                    break;
+                case GFF_ITEM_OBJECT:
+                    printf("ITEM\n");
+                    print_item((ds1_item_t*)rdff.data, "        ");
+                    break;
+                case GFF_CHAR_OBJECT:
+                    printf("CHAR\n");
+                    break;
+                case GFF_MINI_OBJECT:
+                    printf("MINI\n");
+                    break;
+                default:
+                    break;
+            }
+            break;
+        case RDFF_CONTAINER:
+            printf("CONTAINER\n");
+            break;
+        case RDFF_DATA:
+            printf("DATA\n");
+            break;
+        case RDFF_NEXT:
+            printf("NEXT\n");
+            break;
+        case RDFF_END:
+            printf("END\n");
+            break;
+    }
+
+    return EXIT_SUCCESS;
+}

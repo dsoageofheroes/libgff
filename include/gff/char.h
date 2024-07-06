@@ -5,17 +5,9 @@
 #include <gff/psionic.h>
 #include <gff/rdff.h>
 
-//#include "wizard.h"
-//#include "entity.h"
-//#include "object.h"
-
 typedef struct gff_char_entry_s {
     gff_rdff_header_t header;
     uint8_t data[];
-    //ds_character_t pc;
-    //gff_psin_t psi;
-    //gff_spell_list_t spells;
-    //gff_psionic_list_t psionics;
 } gff_char_entry_t;
 
 /*

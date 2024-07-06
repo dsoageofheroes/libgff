@@ -9,27 +9,16 @@
 #define RDFF_MAX (1<<12)
 static int fill_object(char *data, gff_rdff_header_t *entry, int16_t id, gff_object_t *obj);
 
-extern int gff_rdff_load(gff_file_t *f, int res_id, gff_rdff_t *rdff) {
-    gff_chunk_header_t chunk;
+extern int gff_read_rdff(gff_file_t *f, int res_id, gff_rdff_t *rdff) {
+    return gff_read_raw(f, GFF_RDFF, res_id, (uint8_t*)rdff, sizeof(gff_rdff_t))
+        ? EXIT_SUCCESS
+        : EXIT_FAILURE;
+}
 
-    if (gff_find_chunk_header(f, &chunk, GFF_RDFF, res_id)) {
-        goto header_read_error;
-    }
-
-    if (chunk.length > sizeof(gff_rdff_t)) {
-        goto buffer_error;
-    }
-
-    if (gff_read_chunk(f, &chunk, rdff, chunk.length) < chunk.length) {
-        goto read_error;
-    }
-
-    return EXIT_SUCCESS;
-buffer_error:
-    printf ("chunk.length (%d) greater than max (%d)!\n", chunk.length, RDFF_MAX);
-read_error:
-header_read_error:
-    return EXIT_FAILURE;
+extern int gff_load_rdff(gff_file_t *f, int res_id, gff_rdff_t **rdff, uint32_t *len) {
+    return (*len = gff_load_raw(f, GFF_RDFF, res_id, (uint8_t**)rdff))
+        ? EXIT_SUCCESS
+        : EXIT_FAILURE;
 }
 
 extern int gff_rdff_to_object(gff_rdff_t *rdff, gff_object_t *obj) {
