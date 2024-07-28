@@ -95,7 +95,7 @@ void test_item(void) {
 
     TS(gff_manager_load_ds1(man, "ds1/"));
 
-    TS(gff_item_load(man, &item, 31006));
+    TS(gff_manager_item_load(man, &item, 31006));
     TEST_ASSERT(item.id == -31006);
     TEST_ASSERT(item.value == 50000);
 
