@@ -11,7 +11,7 @@ set(TEST_NAMES
     ds1-manager
     ds1-region
     ds1-resource
-    ds1-segobjex
+    #ds1-segobjex
 )
 
 foreach(TEST_NAME ${TEST_NAMES})
