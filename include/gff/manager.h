@@ -31,7 +31,7 @@ extern int             gff_manager_create_ds1_region_object(gff_manager_t *man, 
 extern int             gff_manager_load_window(gff_ds1_manager_t *man, int res_id, gff_window_t **win);
 extern int             gff_manager_font_load(gff_manager_t *man, uint8_t **data, int32_t *w, int32_t *h, const uint32_t fg_color, const uint32_t bg_color);
 extern gff_game_type_t gff_manager_game_type(gff_manager_t *man);
-extern int             gff_item_load(gff_manager_t *man, ds1_item_t *item, int32_t id);
+extern int             gff_manager_item_load(gff_manager_t *man, ds1_item_t *item, int32_t id);
 extern int             gff_manager_get_item1r(gff_manager_t *man, const int32_t item_idx, ds_item1r_t *item1r);
 extern int             gff_manager_ds1_read_item1r(gff_manager_t *man, const int32_t item_idx, ds_item1r_t *item1r);
 extern int             gff_manager_ds1_read_name(gff_manager_t *man, const int32_t name_idx, char *buf);

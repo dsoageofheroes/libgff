@@ -44,7 +44,7 @@ null_error:
     return EXIT_FAILURE;
 }
 
-extern int gff_item_load(gff_manager_t *man, ds1_item_t *item, int32_t id) {
+extern int gff_manager_item_load(gff_manager_t *man, ds1_item_t *item, int32_t id) {
     gff_item_read(man->ds1.segobjex, id, item);
     return EXIT_SUCCESS;
 }
