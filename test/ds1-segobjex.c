@@ -33,19 +33,19 @@ void test_rdff(void) {
         //printf("'%s'\n", gff_type_to_str(gff_get_type_id(f, i)));
     //}
 
-    TF(gff_rdff_load(f, 0, &rdff));
+    TF(gff_read_rdff(f, 0, &rdff));
 
     unsigned int* ids;
     gff_load_id_list(f, GFF_RDFF, &ids, &len);
     for (int i = 0; i < len; i++) {
         //printf("->%d\n", ids[i]);
-        TS(gff_rdff_load(f, ids[i], &rdff));
+        TS(gff_read_rdff(f, ids[i], &rdff));
         TS(gff_rdff_to_object(&rdff, &so));
         //printf("type: %d, id: %d\n", so.type, ids[i]);
     }
     free(ids);
 
-    TS(gff_rdff_load(f, 32003, &rdff));
+    TS(gff_read_rdff(f, 32003, &rdff));
     TS(gff_rdff_to_object(&rdff, &so));
     TEST_ASSERT(so.type == 1);
 
@@ -69,7 +69,7 @@ void test_scmd(void) {
         //printf("->%d\n", ids[i]);
         TS(gff_scmd_read(f, ids[i], &scmd, &slen));
         free(scmd);
-        //TS(gff_rdff_load(f, ids[i], &rdff));
+        //TS(gff_read_rdff(f, ids[i], &rdff));
         //TS(gff_rdff_to_object(&rdff, &so));
         //printf("type: %d, id: %d\n", so.type, ids[i]);
     }

@@ -32,6 +32,8 @@ Version 0.6.0 Features
      * entity: DS1, DS2, DSO
      * full: DS1, DS2, DSO
 
+  * TODO: RDFF: {Chests/bags, Data:char, data:mini, data:nameix}, SPST
+
 * 0.8.0: GPL hooks, manager for all gffs.
 * 0.9.0: Cinematic extraction
   * 'BMA ' Cinematic Binary File
@@ -56,8 +58,6 @@ To be written
 
 
 # TODO
->>>>>>> master
-
 
 # Programming Guide
 

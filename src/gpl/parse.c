@@ -90,7 +90,7 @@ static void gpl_load_simple_variable(gpl_data_t *gpl, uint16_t type, uint16_t vn
 }
 
 static int gpl_unknown(gpl_data_t *gpl) {
-    //printf("UNKNOWN COMMAND\n");
+    printf("UNKNOWN COMMAND\n");
     return EXIT_FAILURE;
 }
 
@@ -399,12 +399,13 @@ static size_t gpl_read_number(gpl_data_t *gpl) {
                     break;
                 }
                 case GPL_IMMED_BIGNUM|0x80: {
-                    //cval = (int32_t)((int16_t)get_word()) * 655356L 
-                         //+ (int32_t)((uint16_t)get_word());
                     gpl_get_word(gpl, &w);
-                    cval = ((int32_t)w) * (int32_t)655356L;
+                    cval = 0x0;
+                    uint16_t *t = &cval;
+                    t[1] = w;
                     gpl_get_word(gpl, &w);
                     cval += ((int32_t)w);
+                    //printf("HERE: %d %d: %d\n", t[0], t[1], cval);
                     //buf_pos += snprintf(buf + buf_pos, size - buf_pos, "%d", cval);
                     printf("GPL_IMMED_GN: %d ", cval);
                     break;
@@ -560,8 +561,18 @@ static size_t gpl_read_number(gpl_data_t *gpl) {
                     //printf("buf = '%s' ", buf);
                     break;
                 }
+                case 0xb3:
+                    printf(" THIS OP APPEARS TO BE SETTING A PASSIVE'S flag value to something ");
+                    cval = gpl_read_complex(gpl);//, buf, &buf_pos, size);
+                    break;
                 default: {
-                    printf(" UNKNOWN OP: 0x%x or 0x%x ", cop&0x7F, cop);
+                    printf(" UNKNOWN OP: 0x%x or 0x%x \n", cop&0x7F, cop);
+                    printf("Next Bytes: ");
+                    for (int i = 0; i < 16; i++) {
+                        gpl_get_byte(gpl, &cop);
+                        printf("0x%x, ", cop);
+                    }
+                    printf("\n");
                     exit(1);
                     break;
                 }
@@ -1246,6 +1257,13 @@ static int gpl_get_los(gpl_data_t *gpl) {
     return EXIT_SUCCESS;
 }
 
+static int gpl_jump(gpl_data_t *gpl) {
+    printf("JUMP (");
+    gpl_get_parameters(gpl, 1);
+    printf(")%s", gpl->in_retval ? "" : "\n");
+    return EXIT_SUCCESS;
+}
+
 static int gpl_call_local(gpl_data_t *gpl) {
     printf("CALL_LOCAL_FUNCTION (");
     gpl_get_parameters(gpl, 1);
@@ -1507,7 +1525,7 @@ static gpl_command_t gpl_commands[] = {
     { gpl_get_status, "gpl getstatus" }, // 0xF
     { gpl_get_los, "gpl getlos" }, // 0x10
     { gpl_long_times_equal, "gpl long times equal" }, // 0x11
-    { gpl_unknown, "gpl jump" }, // 0x12
+    { gpl_jump, "gpl jump" }, // 0x12
     { gpl_call_local, "gpl local sub" }, // 0x13
     { gpl_call_global, "gpl global sub" }, // 0x14
     { gpl_local_ret, "gpl local ret" }, // 0x15

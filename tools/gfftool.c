@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 static char *input_file = NULL;
 static char *entry_name = NULL;
@@ -132,6 +133,12 @@ static void dump_entries(gff_file_t *gff, const char *path) {
     char name[256];
     uint8_t *buf;
     size_t buflen;
+    struct stat sb;
+
+    if (stat(path, &sb) != 0 || !S_ISDIR(sb.st_mode)) {
+        fprintf(stderr, "%s needs to be a directory.\n", path);
+        return;
+    }
 
     // If not a number convert from type to index
     for (int i = 0; i < gff->num_types; i++) {

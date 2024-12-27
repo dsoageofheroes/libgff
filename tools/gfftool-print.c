@@ -848,7 +848,7 @@ static void print_mas(gff_file_t *gff, unsigned int id) {
 
 static void print_gpl(gff_file_t *gff, unsigned int id) {
     uint8_t *gpl = NULL;
-    size_t len;
+    size_t len = 0;
 
     if (gff_load_gpl(gff, id, &gpl, &len)) {
         printf("unable to load GPL\n");
