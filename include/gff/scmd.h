@@ -4,29 +4,6 @@
 
 #include "common.h"
 
-typedef struct gff_scmd_s {
-    uint8_t bmp_idx; // 0-254 = valid, 255 = none
-    uint8_t delay;   // 0-255 = valid, ticks are 96 per second
-    uint8_t flags;   // See SCMD flags
-    int8_t xoffset; // change in x for new bmp
-    int8_t yoffset; // change in x for new bmp
-    int8_t xoffsethot; // change in x for new bmp
-    int8_t yoffsethot; // change in x for new bmp
-    uint8_t soundidx;  // sound index to play
-} gff_scmd_t;
-
-typedef struct gff_ojff_s {
-    uint16_t flags;
-    int16_t  xoffset;
-    int16_t  yoffset;
-    uint16_t xpos;
-    uint16_t ypos;
-    int8_t   zpos;
-    uint8_t  object_index;
-    uint16_t bmp_id;
-    uint16_t script_id;
-} gff_ojff_t;
-
 // SCMD flags
 #define SCMD_JUMP (0x01) // loop
 #define SCMD_LAST (0x02) // end of script

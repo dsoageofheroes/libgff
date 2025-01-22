@@ -401,7 +401,7 @@ static size_t gpl_read_number(gpl_data_t *gpl) {
                 case GPL_IMMED_BIGNUM|0x80: {
                     gpl_get_word(gpl, &w);
                     cval = 0x0;
-                    uint16_t *t = &cval;
+                    uint16_t *t = (uint16_t*)&cval;
                     t[1] = w;
                     gpl_get_word(gpl, &w);
                     cval += ((int32_t)w);
@@ -569,7 +569,7 @@ static size_t gpl_read_number(gpl_data_t *gpl) {
                     printf(" UNKNOWN OP: 0x%x or 0x%x \n", cop&0x7F, cop);
                     printf("Next Bytes: ");
                     for (int i = 0; i < 16; i++) {
-                        gpl_get_byte(gpl, &cop);
+                        gpl_get_byte(gpl, (uint8_t*)&cop);
                         printf("0x%x, ", cop);
                     }
                     printf("\n");

@@ -407,14 +407,7 @@ null_err:
     return EXIT_FAILURE;
 }
 
-extern gff_region_t* gff_region_load(gff_file_t *f) {
-    gff_region_t *region;
-
-    if (!f) { return NULL; }
-
-    region = (gff_region_t*) malloc(sizeof(gff_region_t));
-    if (!region) { goto memory_error; }
-
+extern int gff_region_read(gff_file_t *f, gff_region_t *region) {
     if (load_region_etab(f, region)) {
         goto etab_error;
     }
@@ -427,11 +420,30 @@ extern gff_region_t* gff_region_load(gff_file_t *f) {
         goto tile_error;
     }
 
-    return region;
+    return EXIT_SUCCESS;
 
 etab_error:
 flag_error:
 tile_error:
+    gff_region_free(region);
+    return EXIT_FAILURE;
+}
+
+extern gff_region_t* gff_region_load(gff_file_t *f) {
+    gff_region_t *region;
+
+    if (!f) { return NULL; }
+
+    region = (gff_region_t*) malloc(sizeof(gff_region_t));
+    if (!region) { goto memory_error; }
+
+    if (gff_region_read(f, region)) {
+        goto read_error;
+    }
+
+    return region;
+
+read_error:
     gff_region_free(region);
 memory_error:
     return NULL;
@@ -505,7 +517,7 @@ extern int gff_region_object_free(gff_region_object_t *obj) {
     return EXIT_SUCCESS;
 }
 
-extern int gff_region_free(gff_region_t *region) {
+extern int gff_region_cleanup(gff_region_t *region) {
     if (!region) { return EXIT_FAILURE; }
 
     if (region->objs) {
@@ -525,6 +537,14 @@ extern int gff_region_free(gff_region_t *region) {
         free(region->etab);
         region->etab = NULL;
     }
+
+    return EXIT_SUCCESS;
+}
+
+extern int gff_region_free(gff_region_t *region) {
+    if (!region) { return EXIT_FAILURE; }
+
+    gff_region_cleanup(region);
 
     free(region);
 
