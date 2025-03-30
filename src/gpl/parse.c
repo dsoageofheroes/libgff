@@ -3,11 +3,42 @@
 #include <gpl/var.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
+
+char arg0[1024];
 
 typedef struct gpl_command_s {
     int (*func)(gpl_data_t *gpl);
     const char *name;
 } gpl_command_t;
+
+static void print_out(int count, va_list ap) {
+    if (count > 0) {
+        printf("%s (", va_arg(ap, char*));
+    }
+    if (count > 1) {
+        printf("%s", va_arg(ap, char*));
+    }
+    for(int i = 2; i < count; i++) {
+        printf(", %s", va_arg(ap, char*));
+    }
+    printf(")");
+}
+
+static void print_cmd(int count, ...) {
+    va_list args;
+    va_start(args, count);
+    print_out(count, args);
+    va_end(args);
+    printf("\n");
+}
+
+static void print_inline(int count, ...) {
+    va_list args;
+    va_start(args, count);
+    print_out(count, args);
+    va_end(args);
+}
 
 static void gpl_retval(gpl_data_t *gpl, uint8_t cmd);
 
@@ -62,25 +93,31 @@ static void gpl_load_simple_variable(gpl_data_t *gpl, uint16_t type, uint16_t vn
     switch (type) {
         case GPL_GBIGNUM:
             //gpl_global_bnums[vnum] = (int32_t) val;
-            printf("SET_GBN(%d, accum) ", vnum);
+            sprintf(arg0, "%d", vnum);
+            print_cmd(3, "SET_GBN", arg0, "accum");
             break;
         case GPL_LBIGNUM:
             //gpl_local_bnums[vnum] = (int32_t) val;
-            printf("SET_LBN(%d, accum) ", vnum);
+            sprintf(arg0, "%d", vnum);
+            print_cmd(3, "SET_LBN", arg0, "accum");
             break;
         case GPL_GNUM:
             //gpl_global_nums[vnum] = (int16_t) val;
-            printf("SET_GN(%d,  accum) ", vnum);
+            sprintf(arg0, "%d", vnum);
+            print_cmd(3, "SET_GN", arg0, "accum");
             break;
         case GPL_LNUM:
             //gpl_local_nums[vnum] = (int16_t) val;
-            printf("SET_LN(%d, accum) ", vnum);
+            sprintf(arg0, "%d", vnum);
+            print_cmd(3, "SET_LN", arg0, "accum");
             break;
         case GPL_GFLAG:
-            printf("SET_GF(%d, accum) ", vnum);
+            sprintf(arg0, "%d", vnum);
+            print_cmd(3, "SET_GF", arg0, "accum");
             break;
         case GPL_LFLAG:
-            printf("SET_LF(%d, accum) ", vnum);
+            sprintf(arg0, "%d", vnum);
+            print_cmd(3, "SET_LF", arg0, "accum");
             break;
         default:
             error("ERROR: Unknown simple variable type! 0x%x! ", type);
@@ -90,7 +127,7 @@ static void gpl_load_simple_variable(gpl_data_t *gpl, uint16_t type, uint16_t vn
 }
 
 static int gpl_unknown(gpl_data_t *gpl) {
-    printf("UNKNOWN COMMAND\n");
+    print_cmd(1, "UNKNOWN_COMMAND");
     return EXIT_FAILURE;
 }
 
@@ -113,32 +150,38 @@ static int gpl_read_simple_num_var(gpl_data_t *gpl) {
     switch(gpl_global_big_num) {
         case GPL_GFLAG: {
             //return snprintf(buf, buf_size, "gpl.get_gf(%d)", temps16);
-            printf("GET_GF(%d) ", temps16);
+            sprintf(arg0, "%d", temps16);
+            print_inline(2, "GET_GF", arg0);
             break;
         }
         case GPL_LFLAG: {
             //return snprintf(buf, buf_size, "gpl.get_lf(%d)", temps16);
-            printf("GET_LF(%d) ", temps16);
+            sprintf(arg0, "%d", temps16);
+            print_inline(2, "GET_LF", arg0);
             break;
         }
         case GPL_GNUM: {
             //return snprintf(buf, buf_size, "gpl.get_gn(%d)", temps16);
-            printf("GET_GN(%d) ", temps16);
+            sprintf(arg0, "%d", temps16);
+            print_inline(2, "GET_GN", arg0);
             break;
         }
         case GPL_LNUM: {
             //return snprintf(buf, buf_size, "gpl.get_ln(%d)", temps16);
-            printf("GET_LN(%d) ", temps16);
+            sprintf(arg0, "%d", temps16);
+            print_inline(2, "GET_LN", arg0);
             break;
         }
         case GPL_GBIGNUM: {
             //return snprintf(buf, buf_size, "gpl.get_gbn(%d)", temps16);
-            printf("GET_GBN(%d) ", temps16);
+            sprintf(arg0, "%d", temps16);
+            print_inline(2, "GET_GBN", arg0);
             break;
         }
         case GPL_LBIGNUM: {
             //return snprintf(buf, buf_size, "gpl.get_lbn(%d)", temps16);
-            printf("GET_LBN(%d) ", temps16);
+            sprintf(arg0, "%d", temps16);
+            print_inline(2, "GET_LBN", arg0);
             break;
         }
         case GPL_GNAME: {
@@ -147,7 +190,9 @@ static int gpl_read_simple_num_var(gpl_data_t *gpl) {
                 //return snprintf(buf, buf_size, "\"gpl.get_gname(%d)\"", temps16 - 0x20);
                 //printf("gpl.get_gname(%d)\n", temps16 - 0x20);
                 //return snprintf(buf, buf_size, "gpl.get_gname(%d)", temps16 - 0x20);
-                printf("GET_GNAME(%d) ", temps16 - 0x20);
+                //printf("GET_GNAME(%d) ", temps16 - 0x20);
+                sprintf(arg0, "%d", temps16 - 0x20);
+                print_inline(2, "GET_GNAME", arg0);
             } else {
                 //printf("NO VARIABLE GNAME!\n");
                 error("ERROR: No variable GNAME!!!\n");

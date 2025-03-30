@@ -13,6 +13,7 @@ extern gff_script_entry_t script_entry_table[MAX_SCRIPTS];
 // Tested
 extern gff_region_t*  gff_region_load(gff_file_t *f);
 extern int            gff_region_read(gff_file_t *f, gff_region_t *reg);
+extern int            gff_region_cleanup(gff_region_t *region);
 extern int            gff_region_free(gff_region_t *region);
 extern int            gff_region_get_num_objects(gff_file_t *f, uint32_t *amt);
 extern int            gff_region_object_free(gff_region_object_t *obj);

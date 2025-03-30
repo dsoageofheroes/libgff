@@ -222,6 +222,7 @@ extern uint16_t gff_region_get_object_location(gff_file_t *f, int res_id, int ob
 gff_object_t* gff_create_object(char *data, gff_rdff_header_t *entry, int16_t id) {
     int i;
     gff_object_t* obj = calloc(1, sizeof(gff_object_t)); // calloc zeroizes.
+    ds1_item_t *item = NULL;
     if (!obj) { return NULL; } // Calloc failed.
     //int16_t *objectHeader;
     //data += 9;
@@ -259,7 +260,7 @@ gff_object_t* gff_create_object(char *data, gff_rdff_header_t *entry, int16_t id
             }
             break;
         case GFF_ITEM_OBJECT:
-            ds1_item_t *item = &(obj->data.item);
+            item = &(obj->data.item);
             memcpy(item, (ds1_item_t*) data, sizeof(ds1_item_t));
             /*
             printf("id = %d\n", item->id);
@@ -408,6 +409,10 @@ null_err:
 }
 
 extern int gff_region_read(gff_file_t *f, gff_region_t *region) {
+    if (f == NULL || region == NULL) {
+        goto null_error;
+    }
+
     if (load_region_etab(f, region)) {
         goto etab_error;
     }
@@ -422,10 +427,11 @@ extern int gff_region_read(gff_file_t *f, gff_region_t *region) {
 
     return EXIT_SUCCESS;
 
-etab_error:
-flag_error:
 tile_error:
-    gff_region_free(region);
+flag_error:
+etab_error:
+    gff_region_cleanup(region);
+null_error:
     return EXIT_FAILURE;
 }
 
