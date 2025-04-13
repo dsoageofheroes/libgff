@@ -114,7 +114,7 @@ typedef struct gff_object_s {
     } data;
 } gff_object_t;
 
-enum {
+enum gff_race_e {
     RACE_MONSTER,
     RACE_HUMAN,
     RACE_DWARF,
