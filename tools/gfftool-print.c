@@ -198,17 +198,21 @@ static void print_rdat(gff_file_t *gff, unsigned int id) {
 
 static void print_monr(gff_file_t *gff, unsigned int id) {
     gff_monster_list_t *mon = NULL;
-    size_t num_monsters;
+    size_t num_monsters, num_regions, size;
 
-    gff_load_monster_list(gff, id, &mon, &num_monsters);
+    gff_load_monster_list(gff, id, &mon, &size);
 
-    printf("monster list #%d is in region %d, and has %ld monster types.\n", id, mon->region, num_monsters);
+    num_regions = size / sizeof(gff_monster_list_t);
 
-    for (int i = 0; i < num_monsters; i++) {
-        printf("    %d: id: %d level: %d\n", i, mon->monsters[i].id, mon->monsters[i].level);
+    printf("monster list #%d has %d regions.\n", id, num_regions);
+
+    for (int i = 0; i < num_regions; i++) {
+        printf("    Region %d:\n", mon[i].region);
+        for (int j = 0; j < MAX_MONSTERS_PER_REGION; j++) {
+            printf("        id: %d, level: %d\n", mon[i].monsters[j].id, mon[i].monsters[j].level);
+        }
+        //printf("    %d: id: %d level: %d\n", i, mon->monsters[i].id, mon->monsters[i].level);
     }
-
-    printf("Warning: GFF_MONR may not be accurate.\n");
 
     free(mon);
 }

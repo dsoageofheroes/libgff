@@ -6,14 +6,16 @@
 
 #include "common.h"
 
+#define MAX_MONSTERS_PER_REGION (10)
+
 typedef struct gff_monster_entry_s {
     int16_t id;
     int16_t level;
-} gff_monster_entry_t;
+} __attribute__ ((__packed__)) gff_monster_entry_t;
 
 typedef struct gff_monster_region_s {
     int16_t region;
-    gff_monster_entry_t monsters[];
+    gff_monster_entry_t monsters[MAX_MONSTERS_PER_REGION];
 } __attribute__ ((__packed__)) gff_monster_list_t;
 
 extern gff_file_t open_files[NUM_FILES];
